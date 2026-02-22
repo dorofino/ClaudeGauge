@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Session Key Helper",
+  "description": "One-click setup for your ClaudeGauge device. Auto-fills your Claude.ai session key — no developer tools needed.",
+  "version": "1.0.0",
+  "permissions": ["cookies"],
+  "host_permissions": ["https://claude.ai/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

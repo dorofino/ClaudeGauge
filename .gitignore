@@ -1,0 +1,66 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build artifacts
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+package-lock.json
+.wrangler/
+
+# Vercel
+.vercel/
+
+# Environment / secrets
+.env
+.env.*
+*.key
+*.pem
+secrets.*
+
+# Claude Code
+.claude/
+CLAUDE.md
+tmpclaude-*
+*-cwd
+
+# Test files with credentials
+designer/test_claudeai.py
+
+# Internal scripts (not part of public repo)
+scripts/start-servers.ps1
+scripts/switch-to-api-key.ps1
+
+# Private (not part of public repo)
+website/
+worker-vercel/
+worker/
+proxy/
+claude/
+browser-extension/

@@ -1,0 +1,3772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCARS Dashboard Editor</title>
+<style>
+@font-face {
+    font-family: 'Antonio';
+    src: url('./Antonio.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Top bar */
+.topbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.topbar h1 {
+    font-size: 16px;
+    color: #FF9900;
+    font-family: 'Antonio', sans-serif;
+    letter-spacing: 1px;
+    margin-right: 16px;
+}
+
+/* Screen tabs */
+.tabs {
+    display: flex;
+    gap: 2px;
+}
+
+.tab {
+    padding: 4px 10px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px 6px 0 0;
+    color: #8b949e;
+    position: relative;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.tab:hover { background: #30363d; color: #e6edf3; }
+.tab.active { background: #FF9900; color: #0d1117; border-color: #FF9900; }
+.tab.drag-over { border-left: 3px solid #FF9900; }
+.tab .tab-close {
+    margin-left: 6px; opacity: 0; font-size: 13px; cursor: pointer; vertical-align: middle;
+}
+.tab:hover .tab-close { opacity: 0.6; }
+.tab .tab-close:hover { opacity: 1; color: #f85149; }
+.tab-add {
+    padding: 4px 10px;
+    background: #161b22;
+    border: 1px dashed #30363d;
+    border-radius: 6px 6px 0 0;
+    color: #484f58;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+}
+.tab-add:hover { background: #21262d; color: #8b949e; border-color: #484f58; }
+
+.spacer { flex: 1; }
+
+/* Controls */
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+}
+
+.controls label { color: #8b949e; }
+
+.controls select, .controls input[type="number"] {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Main layout */
+.main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Canvas area */
+.canvas-area {
+    flex: 1;
+    overflow: scroll;
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE/Edge */
+    position: relative;
+    background: #0d1117;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.canvas-area.ready { opacity: 1; }
+.canvas-area::-webkit-scrollbar { display: none; }
+.canvas-area.panning { cursor: grabbing; }
+
+.zoom-ruler {
+    position: fixed;
+    bottom: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 8px 4px;
+    gap: 4px;
+}
+.zoom-ruler button {
+    width: 24px; height: 24px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #21262d;
+    color: #e6edf3;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+}
+.zoom-ruler button:hover { background: #30363d; }
+.zoom-ruler input[type="range"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: 24px;
+    height: 120px;
+    accent-color: #FF9900;
+    cursor: pointer;
+}
+.zoom-ruler .zoom-label {
+    color: #FF9900;
+    font-size: 11px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.canvas-wrap {
+    position: relative;
+    border: 2px solid #30363d;
+    border-radius: 4px;
+    overflow: visible;
+    image-rendering: pixelated;
+}
+.cross-label {
+    position: absolute;
+    font: 11px monospace;
+    color: #f90;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+}
+.cross-label-x { top: -16px; }
+.cross-label-y { left: -28px; }
+
+canvas {
+    display: block;
+    image-rendering: pixelated;
+}
+
+.coord-status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #8b949e;
+    font-family: monospace;
+    height: 18px;
+}
+
+/* Output overlay */
+.output-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #161b22ee;
+    backdrop-filter: blur(8px);
+    border-top: 1px solid #30363d;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    height: 220px;
+}
+.output-overlay.collapsed { height: 32px !important; overflow: hidden; }
+.output-resizer {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: ns-resize;
+    z-index: 51;
+}
+.output-resizer:hover, .output-resizer.active {
+    background: #FF9900;
+}
+.output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 12px;
+    flex-shrink: 0;
+}
+.output-tab {
+    background: none;
+    border: 1px solid transparent;
+    color: #8b949e;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.output-tab:hover { color: #e6edf3; }
+.output-tab.active { color: #FF9900; border-color: #FF9900; }
+.output-tab.active-serial { color: #58a6ff; border-color: #58a6ff; }
+.output-log {
+    flex: 1;
+    background: #0d111799;
+    margin: 0 8px 6px 8px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    overflow-y: auto;
+    color: #8b949e;
+    font-family: Consolas, Monaco, monospace;
+    white-space: pre-wrap;
+    user-select: text;
+    cursor: text;
+}
+
+/* Left toolbox panel */
+.toolbox {
+    width: 170px;
+    background: #161b22;
+    border-right: 1px solid #30363d;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s;
+}
+.toolbox.collapsed { width: 28px; }
+.toolbox-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 8px;
+    border-bottom: 1px solid #21262d;
+    flex-shrink: 0;
+}
+.toolbox.collapsed .toolbox-header span { display: none; }
+.toolbox-toggle {
+    background: none;
+    border: none;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 4px;
+}
+.toolbox.collapsed .toolbox-toggle { transform: rotate(180deg); }
+.toolbox-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 2px 0;
+}
+.toolbox.collapsed .toolbox-body { display: none; }
+.toolbox-group { padding: 4px 8px; }
+.toolbox-group-title {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #FF9900;
+    margin-bottom: 3px;
+    padding-top: 4px;
+    border-top: 1px solid #21262d;
+}
+.toolbox-group:first-child .toolbox-group-title { border-top: none; padding-top: 0; }
+.toolbox-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    margin: 1px 0;
+    border-radius: 3px;
+    cursor: grab;
+    font-size: 11px;
+    color: #c9d1d9;
+}
+.toolbox-item:hover { background: #21262d; }
+.toolbox-item:active { cursor: grabbing; background: #30363d; }
+.toolbox-item .item-icon {
+    width: 14px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Panel resizer */
+.panel-resizer {
+    width: 4px;
+    cursor: col-resize;
+    background: #30363d;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.panel-resizer:hover, .panel-resizer.active {
+    background: #FF9900;
+}
+
+/* Right panel */
+.panel {
+    width: 300px;
+    background: #161b22;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.panel-section {
+    padding: 12px;
+    border-bottom: 1px solid #21262d;
+}
+
+.panel-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #FF9900;
+    margin-bottom: 8px;
+}
+
+/* Properties */
+.prop-grid {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 4px 8px;
+    align-items: center;
+}
+
+.prop-grid label {
+    font-size: 11px;
+    color: #8b949e;
+}
+
+.prop-grid input, .prop-grid select {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    width: 100%;
+}
+
+.prop-grid input:focus, .prop-grid select:focus {
+    border-color: #FF9900;
+    outline: none;
+}
+
+.no-selection {
+    color: #484f58;
+    font-size: 12px;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* Color palette */
+.color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+}
+
+.color-swatch:hover { border-color: #e6edf3; }
+.color-swatch.active { border-color: #FF9900; }
+
+/* Sample data */
+.data-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 4px 8px;
+    align-items: center;
+}
+
+.data-grid label {
+    font-size: 11px;
+    color: #8b949e;
+}
+
+.data-grid input {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    width: 100%;
+}
+
+.data-grid input:focus {
+    border-color: #FF9900;
+    outline: none;
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 12px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+}
+
+.btn:hover { background: #30363d; }
+.btn-primary { background: #FF9900; color: #0d1117; border-color: #FF9900; }
+.btn-primary:hover { background: #ffad33; }
+
+/* Export modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.visible { display: flex; }
+
+.modal {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    width: 90%;
+}
+
+.modal h2 {
+    color: #FF9900;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.modal pre {
+    background: #0d1117;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    overflow-x: auto;
+    white-space: pre;
+    color: #e6edf3;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.modal .btn { margin-top: 12px; }
+
+/* Inline text editor overlay */
+.inline-edit {
+    position: absolute;
+    background: #0d1117;
+    border: 2px solid #FF9900;
+    color: #e6edf3;
+    font-family: 'Antonio', sans-serif;
+    padding: 0 2px;
+    outline: none;
+    z-index: 50;
+    min-width: 40px;
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar with tabs and controls -->
+<div class="topbar">
+    <h1>LCARS EDITOR</h1>
+    <div class="tabs" id="tabs"></div>
+    <div class="spacer"></div>
+    <div class="controls">
+        <button id="btnUndo" onclick="undo()" disabled title="Undo (Ctrl+Z)" style="font-size:16px; padding:2px 6px; background:#21262d; border:1px solid #30363d; color:#c9d1d9; border-radius:4px; cursor:pointer;">&#x21A9;</button>
+        <button id="btnRedo" onclick="redo()" disabled title="Redo (Ctrl+Y)" style="font-size:16px; padding:2px 6px; background:#21262d; border:1px solid #30363d; color:#c9d1d9; border-radius:4px; cursor:pointer;">&#x21AA;</button>
+        <span style="margin-right:8px; border-right:1px solid #555; padding-right:8px;"></span>
+        <label>Firmware:</label>
+        <select id="firmwareSelect">
+            <option value="v1">v1 (7 screens)</option>
+            <option value="v2">v2 (lcars-esp32)</option>
+        </select>
+        <label>Board:</label>
+        <select id="boardSelect">
+            <option value="tdisplay">T-Display-S3 (320x170)</option>
+            <option value="waveshare">Waveshare 1.47 (320x172)</option>
+        </select>
+        <label>Zoom:</label>
+        <select id="zoomSelect">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+            <option value="3" selected>3x</option>
+            <option value="4">4x</option>
+            <option value="5">5x</option>
+            <option value="6">6x</option>
+        </select>
+        <span style="margin-left:12px; border-left:1px solid #555; padding-left:12px;">
+            <label><input type="checkbox" id="chkGrid" onchange="showGrid=this.checked; render()"> Grid</label>
+            <label><input type="checkbox" id="chkSnap" checked onchange="snapToGrid=this.checked"> Snap</label>
+            <label><input type="checkbox" id="chkCross" onchange="showCrosshair=this.checked; render()"> Crosshair</label>
+            <label>Size:</label>
+            <select id="gridSizeSelect" onchange="gridSize=+this.value; render()">
+                <option value="2">2px</option>
+                <option value="4" selected>4px</option>
+                <option value="8">8px</option>
+                <option value="10">10px</option>
+                <option value="16">16px</option>
+            </select>
+        </span>
+    </div>
+</div>
+
+<!-- Main layout -->
+<div class="main">
+    <!-- Left toolbox panel -->
+    <div class="toolbox" id="toolbox">
+        <div class="toolbox-header">
+            <span class="panel-title" style="font-size:11px;">ELEMENTS</span>
+            <button class="toolbox-toggle" id="toolboxToggle" onclick="toggleToolbox()" title="Collapse">&#x25C0;</button>
+        </div>
+        <div class="toolbox-body" id="toolboxBody"></div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="canvas-area">
+        <div class="canvas-wrap" id="canvasWrap">
+            <canvas id="display"></canvas>
+            <div id="crossLabelX" class="cross-label cross-label-x"></div>
+            <div id="crossLabelY" class="cross-label cross-label-y"></div>
+        </div>
+        <div class="coord-status" id="coordStatus">Move mouse over canvas</div>
+
+        <!-- Output overlay (build + serial) -->
+        <div id="outputOverlay" class="output-overlay" style="display:none;">
+            <div class="output-resizer" id="outputResizer"></div>
+            <div class="output-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="output-tab active" id="tabBuild" onclick="switchOutputTab('build')">Build</button>
+                    <button class="output-tab" id="tabSerial" onclick="switchOutputTab('serial')">Serial</button>
+                    <span id="serialStatusDot" style="display:none; width:6px; height:6px; border-radius:50%; background:#3fb950;"></span>
+                    <span id="serialStatusLabel" style="font-size:10px; color:#8b949e;"></span>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <select id="serialPortSelect" style="display:none; min-width:0; max-width:160px; background:#0d1117; border:1px solid #30363d; color:#e6edf3; padding:2px 4px; border-radius:4px; font-size:11px; overflow:hidden; text-overflow:ellipsis;">
+                        <option value="">Select port...</option>
+                    </select>
+                    <button class="btn" id="btnSerialRefresh" onclick="refreshSerialPorts()" style="display:none; padding:2px 6px; font-size:11px;" title="Refresh ports">&#x21bb;</button>
+                    <button class="btn" id="btnSerialToggle" onclick="toggleSerial()" style="display:none; padding:2px 8px; font-size:11px;">Connect</button>
+                    <button class="btn" onclick="copyOutputLog()" style="padding:2px 8px; font-size:11px;" title="Copy log to clipboard">Copy</button>
+                    <button class="btn" onclick="clearOutputLog()" style="padding:2px 8px; font-size:11px;">Clear</button>
+                    <button class="btn" id="btnOutputExpand" onclick="toggleOutputExpand()" style="padding:2px 8px; font-size:11px;" title="Expand/Collapse">&#x2913;</button>
+                    <button class="btn" onclick="closeOutput()" style="padding:2px 8px; font-size:11px;">&#x2715;</button>
+                </div>
+            </div>
+            <pre id="buildLog" class="output-log"></pre>
+            <pre id="serialLog" class="output-log" style="display:none;"></pre>
+        </div>
+    </div>
+
+    <!-- Panel resizer -->
+    <div class="panel-resizer" id="panelResizer"></div>
+
+    <!-- Right panel -->
+    <div class="panel" id="rightPanel">
+        <!-- Properties -->
+        <div class="panel-section">
+            <div class="panel-title">Element Properties</div>
+            <div id="propsContent">
+                <div class="no-selection">Click an element on the canvas to select it</div>
+            </div>
+        </div>
+
+        <!-- Color palette -->
+        <div class="panel-section">
+            <div class="panel-title">Color Palette</div>
+            <div class="color-palette" id="colorPalette"></div>
+        </div>
+
+        <!-- Sample data -->
+        <div class="panel-section">
+            <div class="panel-title" style="cursor:pointer; user-select:none;" onclick="toggleSampleData()">
+                <span id="sampleDataArrow" style="display:inline-block; transition:transform 0.2s; font-size:10px; margin-right:4px;">&#x25B6;</span>Sample Data
+            </div>
+            <div class="data-grid" id="dataPanel" style="display:none;"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="panel-section">
+            <div class="panel-title">Actions</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-primary" id="btnSave" onclick="saveLayout()">Save</button>
+                <button class="btn btn-primary" id="btnBuild" onclick="buildFirmware()">Build</button>
+                <button class="btn" id="btnUpload" onclick="uploadFirmware()">Upload</button>
+                <button class="btn btn-primary" id="btnDeploy" onclick="deployFirmware()" style="background:#e47200;">Deploy All</button>
+                <button class="btn" onclick="exportCoordinates()">Export</button>
+                <button class="btn" onclick="resetPositions()">Reset</button>
+                <button class="btn" onclick="resetCurrentPage()" title="Reset current page to defaults">Reset Page</button>
+                <button class="btn" onclick="openSerial()" style="background:#1f6feb;">Serial</button>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+                <label style="font-size: 11px; color: #8b949e; white-space: nowrap;">COM Port</label>
+                <select id="comPortSelect" style="flex: 1; min-width: 0; max-width: 180px; background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 4px 6px; border-radius: 4px; font-size: 11px; overflow: hidden; text-overflow: ellipsis;">
+                    <option value="">Auto-detect</option>
+                </select>
+                <button class="btn" onclick="refreshComPorts()" style="padding: 4px 8px; font-size: 11px;" title="Refresh COM ports">&#x21bb;</button>
+            </div>
+            <div id="deviceHelp" style="margin-top: 10px; font-size: 10px; color: #6e7681; line-height: 1.5; display: none;"></div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Export modal -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal">
+        <h2>Element Coordinates</h2>
+        <pre id="exportContent"></pre>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
+            <button class="btn" onclick="closeExportModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// LCARS Constants (from colors.h and ui_widgets.h)
+// ============================================================
+const COLORS = {
+    CLR_BG:          '#000000',
+    CLR_AMBER:       '#FF9900',
+    CLR_SALMON:      '#FF7777',
+    CLR_PEACH:       '#FFCC99',
+    CLR_LAVENDER:    '#CC99CC',
+    CLR_BLUE:        '#9999FF',
+    CLR_ORANGE:      '#FF6600',
+    CLR_RED:         '#CC4444',
+    CLR_SKY:         '#99CCFF',
+    CLR_TAN:         '#D4AA77',
+    CLR_TEXT_BRIGHT: '#FFFFFF',
+    CLR_TEXT_DIM:    '#4C4C4C',
+    CLR_BAR_BG:     '#1A1A1A',
+    CLR_STATUS_OK:   '#99CCFF',
+    CLR_STATUS_ERR:  '#CC4444'
+};
+
+const BOARDS = {
+    tdisplay:  { name: 'T-Display-S3', w: 320, h: 170 },
+    waveshare: { name: 'Waveshare 1.47', w: 320, h: 172 }
+};
+
+let SCR_W = 320, SCR_H = 170;
+let activeFirmware = 'v1';  // 'v1' or 'v2'
+const SIDEBAR_W = 34;
+let ELBOW_R = 14, TOPBAR_H = 18, BOTBAR_H = 16, BAR_GAP = 3;
+let CONTENT_X, CONTENT_Y, CONTENT_W, CONTENT_H;
+
+// Frame constants per firmware version
+const FRAME_PARAMS = {
+    v1: { elbowR: 14, contentPadX: 4, contentPadY: 12, contentPadBottom: 4 },
+    v2: { elbowR: 16, contentPadX: 4, contentPadY: 4,  contentPadBottom: 6 }
+};
+
+function recalcLayout() {
+    const fp = FRAME_PARAMS[activeFirmware];
+    ELBOW_R = fp.elbowR;
+    CONTENT_X = SIDEBAR_W + ELBOW_R + fp.contentPadX;
+    CONTENT_Y = TOPBAR_H + fp.contentPadY;
+    CONTENT_W = SCR_W - CONTENT_X - 2;
+    CONTENT_H = SCR_H - TOPBAR_H - BOTBAR_H - fp.contentPadBottom;
+}
+recalcLayout();
+
+// Font sizes
+// Font pixel sizes (must match Antonio.ttf VLW fontSize used by TFT_eSPI)
+const FONTS = { builtin: 8, sm: 12, '14': 14, '16': 16, md: 18, '20': 20, '22': 22, '24': 24, '26': 26, lg: 28, xl: 36 };
+// TFT_eSPI yAdvance (maxAscent + maxDescent) — actual rendered cell height on device
+const FONT_HEIGHT = { builtin: 8, sm: 15, '14': 17, '16': 19, md: 22, '20': 24, '22': 26, '24': 29, '26': 31, lg: 33, xl: 43 };
+
+// VLW font atlas (loaded from font_atlas.json for pixel-perfect rendering)
+let fontAtlas = null;  // { "12": { maxAscent, maxDescent, yAdvance, glyphs: { "A": { w, h, xAdv, dY, dX, bmp } } } }
+
+// Line heights
+const H_SM = 16, H_MD = 24, H_LG = 34, H_XL = 44, H_TOK = 25;
+
+// ============================================================
+// State
+// ============================================================
+let currentScreen = 0;
+let zoom = 3;
+let selectedIdx = -1;
+let dragging = false;
+let dragOffsetX = 0, dragOffsetY = 0;
+let resizing = null; // null or { handle: 'start'|'end', axis: 'x'|'y' }
+let fontLoaded = false;
+let showGrid = false;
+let snapToGrid = true;
+let gridSize = 4;
+let showCrosshair = false;
+let mouseLogicalX = -1, mouseLogicalY = -1;
+
+// Undo / Redo
+let undoStack = [];
+let redoStack = [];
+const MAX_UNDO = 50;
+
+function cloneElements(arr) {
+    return arr.map(screen => screen.map(el => {
+        const copy = {};
+        for (const k of Object.keys(el)) {
+            if (k !== '_bbox') copy[k] = typeof el[k] === 'object' && el[k] !== null ? JSON.parse(JSON.stringify(el[k])) : el[k];
+        }
+        return copy;
+    }));
+}
+
+function snapshotState() {
+    return JSON.stringify({
+        screen: cloneElements(screenElements),
+        custom: cloneElements(customElements),
+        deleted: [...deletedElementIds],
+        names: [...SCREEN_NAMES],
+        titles: [...SCREEN_TITLES]
+    });
+}
+
+function pushUndo() {
+    undoStack.push(snapshotState());
+    if (undoStack.length > MAX_UNDO) undoStack.shift();
+    redoStack = [];
+    updateUndoButtons();
+}
+
+function restoreSnapshot(json) {
+    const data = JSON.parse(json);
+    // Support new format {screen, custom} and old format (plain array)
+    const screenData = data.screen || data;
+    const customData = data.custom;
+
+    // Restore deleted element IDs
+    deletedElementIds = new Set(data.deleted || []);
+
+    if (Array.isArray(screenData)) {
+        screenData.forEach((screen, si) => {
+            if (!screenElements[si]) return;
+            // Match length — restore positions of generated elements
+            screen.forEach((saved, ei) => {
+                if (!screenElements[si][ei]) return;
+                for (const k of Object.keys(saved)) {
+                    screenElements[si][ei][k] = saved[k];
+                }
+            });
+        });
+    }
+
+    if (customData) {
+        customData.forEach((screen, si) => {
+            customElements[si] = screen;
+        });
+    }
+
+    // Restore screen names/titles if present (for undo of add/delete/reorder)
+    if (data.names && data.titles) {
+        SCREEN_NAMES = data.names;
+        SCREEN_TITLES = data.titles;
+        // Resize arrays to match
+        screenElements.length = SCREEN_NAMES.length;
+        customElements.length = SCREEN_NAMES.length;
+        if (currentScreen >= SCREEN_NAMES.length) currentScreen = SCREEN_NAMES.length - 1;
+        buildTabs();
+    }
+}
+
+function undo() {
+    if (undoStack.length === 0) return;
+    redoStack.push(snapshotState());
+    restoreSnapshot(undoStack.pop());
+    render();
+    updatePropsPanel();
+    updateUndoButtons();
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    undoStack.push(snapshotState());
+    restoreSnapshot(redoStack.pop());
+    render();
+    updatePropsPanel();
+    updateUndoButtons();
+}
+
+function updateUndoButtons() {
+    const btnU = document.getElementById('btnUndo');
+    const btnR = document.getElementById('btnRedo');
+    if (btnU) btnU.disabled = undoStack.length === 0;
+    if (btnR) btnR.disabled = redoStack.length === 0;
+}
+
+// Sample data (editable)
+const sampleData = {
+    todayCost: 0.00,
+    monthCost: 51.27,
+    inputTokens: 125000,
+    outputTokens: 45200,
+    cachedTokens: 89100,
+    writeTokens: 12500,
+    model1Name: 'opus-4', model1In: 250000, model1Out: 80000,
+    model2Name: 'sonnet-4', model2In: 180000, model2Out: 60000,
+    model3Name: 'haiku-3.5', model3In: 50000, model3Out: 20000,
+    sessions: 12,
+    linesAdded: 340,
+    linesRemoved: 120,
+    commits: 8,
+    pullReqs: 3,
+    estCost: 4.52,
+    editAccepted: 85, editRejected: 15,
+    writeAccepted: 70, writeRejected: 30,
+    userEmail: 'user@exam...',
+    userCost: 4.52,
+    wifiStatus: 'CONNECTED',
+    ipAddress: '192.168.1.36',
+    signalDbm: -58,
+    apiStatus: 'OK',
+    fetchedAgo: '2m ago',
+    heapKB: 201,
+    psramKB: 8068,
+    uptimeH: 0, uptimeM: 8,
+    fwVersion: 'LCARS v2.0',
+    countdown: 285,
+    // Claude.ai subscription sample data
+    cai5hPct: 58, cai5hResetMins: 142,     // 2h 22m until reset
+    cai7dPct: 45, cai7dResetMins: 10080,   // 7d 0h until reset
+    caiOpusPct: 63, caiOpusReset: 'Dec 28 3AM',
+    caiSonnetPct: 38, caiSonnetReset: 'Dec 28 8PM',
+    caiExtraUsed: 33, caiExtraLimit: 50
+};
+
+// ============================================================
+// Screen Definitions
+// ============================================================
+// Per-firmware screen definitions
+const FW_SCREENS = {
+    v1: {
+        names: ['Overview', 'Models', 'Monthly Models', 'Code', 'Monthly Code', 'Status', 'Claude.ai'],
+        titles: ['USAGE OVERVIEW', 'TODAY MODEL ANALYSIS', 'MONTHLY MODELS', 'TODAY CODE ANALYTICS', 'MONTHLY CODE', 'SYSTEM STATUS', 'CLAUDE.AI USAGE'],
+        builders: {
+            'Overview':        (CX, CY, CW, CH) => buildOverview(CX, CY, CW, CH),
+            'Models':          (CX, CY, CW, CH) => buildModels(CX, CY, CW, CH, false),
+            'Monthly Models':  (CX, CY, CW, CH) => buildModels(CX, CY, CW, CH, true),
+            'Code':            (CX, CY, CW, CH) => buildCode(CX, CY, CW, CH, false),
+            'Monthly Code':    (CX, CY, CW, CH) => buildCode(CX, CY, CW, CH, true),
+            'Status':          (CX, CY, CW, CH) => buildStatus(CX, CY, CW, CH),
+            'Claude.ai':       (CX, CY, CW, CH) => buildClaudeAi(CX, CY, CW, CH),
+        }
+    },
+    v2: {
+        names: ['Claude.ai', 'Status', 'Setup'],
+        titles: ['CLAUDE.AI USAGE', 'SYSTEM STATUS', ''],
+        builders: {
+            'Claude.ai':  (CX, CY, CW, CH) => buildClaudeAiV2(CX, CY, CW, CH),
+            'Status':     (CX, CY, CW, CH) => buildStatusV2(CX, CY, CW, CH),
+            'Setup':      (CX, CY, CW, CH) => buildSetupV2(CX, CY, CW, CH),
+        }
+    }
+};
+
+let SCREEN_NAMES = [...FW_SCREENS.v1.names];
+let SCREEN_TITLES = [...FW_SCREENS.v1.titles];
+let SCREEN_BUILDERS = FW_SCREENS.v1.builders;
+
+// Screen title position (in the top bar)
+let TITLE_X = SIDEBAR_W + ELBOW_R + 4;
+const TITLE_Y = 1;
+
+function makeScreenTitle(title, idx) {
+    return { type: 'screenTitle', x: TITLE_X, y: TITLE_Y, text: title, font: 'md', color: 'CLR_AMBER', datum: 'ML', id: `screen_title_${idx}` };
+}
+
+// Frame chrome elements (appear on every screen, draggable/editable)
+function buildFrameElements() {
+    const BH = BOTBAR_H, SW = SIDEBAR_W, R = ELBOW_R, TH = TOPBAR_H;
+    const barY = 1, barH = TH - 2;
+    const bbarX = SW + R + 4;
+    const bbarY = SCR_H - BH + 1;
+    const bbarH = BH - 2;
+    const sigX = SCR_W - 120 - 4;
+
+    return [
+        // Top bar right: "CLAUDE.AI" branding on the peach pill-bar
+        { type: 'claudeText', x: SCR_W - 6, y: barY + Math.floor(barH / 2) - 1, text: 'CLAUDE.AI', color: 'CLR_BG', font: '14', id: 'frame_claude' },
+        // Bottom bar
+        { type: 'pageChip', x: bbarX, y: bbarY, w: 28, h: bbarH, color: 'CLR_PEACH', id: 'frame_page' },
+        { type: 'signalLabel', x: sigX - 24, y: bbarY + Math.floor(bbarH / 2), text: 'SIGNAL', color: 'CLR_TEXT_DIM', font: 'builtin', id: 'frame_signal_text' },
+        { type: 'frameSignalBars', x: sigX - 20, y: bbarY + 1, id: 'frame_signal_bars' },
+        { type: 'countdownPill', x: SCR_W - 120, y: bbarY, w: 120, h: bbarH, color: 'CLR_AMBER', id: 'frame_countdown' },
+    ];
+}
+
+// Build screen elements dynamically from sample data
+function buildScreenElements() {
+    const CX = CONTENT_X, CY = CONTENT_Y, CW = CONTENT_W, CH = CONTENT_H;
+    const screens = [];
+    // Frame chrome (CLAUDE text, signal bars, countdown, page chip)
+    // v1: always shown. v2: shown on Claude.ai screen (screen draws chrome on bars)
+    const frame = buildFrameElements();
+
+    for (let i = 0; i < SCREEN_NAMES.length; i++) {
+        const builder = SCREEN_BUILDERS[SCREEN_NAMES[i]];
+        const content = builder ? builder(CX, CY, CW, CH) : [];
+        const title = SCREEN_TITLES[i] ? makeScreenTitle(SCREEN_TITLES[i], i) : null;
+        const els = title ? [title, ...content] : [...content];
+        // v2 Setup screen has no frame (wantsFrame=false)
+        const isFrameless = activeFirmware === 'v2' && SCREEN_NAMES[i] === 'Setup';
+        if (!isFrameless) {
+            els.push(...frame.map(e => ({...e})));
+        }
+        screens.push(els);
+    }
+
+    return screens;
+}
+
+function buildOverview(CX, CY, CW, CH) {
+    const d = sampleData;
+    const elements = [];
+    let y = CY - 4;
+
+    // Left: Cost
+    elements.push({ type: 'text', x: CX, y, text: 'TODAY', font: 'sm', color: 'CLR_AMBER', datum: 'TL', id: 'lbl_today' });
+    y += H_SM - 4;
+    elements.push({ type: 'cost', x: CX, y, value: d.todayCost, font: 'xl', color: 'CLR_PEACH', id: 'cost_today' });
+    y += H_XL + 6;
+    elements.push({ type: 'text', x: CX, y, text: 'THIS MONTH', font: 'sm', color: 'CLR_AMBER', datum: 'TL', id: 'lbl_month' });
+    y += H_SM;
+    elements.push({ type: 'cost', x: CX, y, value: d.monthCost, font: 'lg', color: 'CLR_SKY', id: 'cost_month' });
+
+    // Divider
+    const divX = CX + Math.floor(CW / 2) - 4;
+    elements.push({ type: 'vline', x: divX, y: CY, h: CH, color: 'CLR_AMBER', id: 'div_main' });
+
+    // Right: Cost breakdown bars
+    const tokX = divX + 8;
+    const tokW = CW - (tokX - CX) - 2;
+    y = CY - 4;
+    elements.push({ type: 'text', x: tokX, y, text: 'COST BREAKDOWN', font: 'sm', color: 'CLR_AMBER', datum: 'TL', id: 'lbl_breakdown' });
+    y += H_SM + 2;
+
+    const models = [
+        { name: d.model1Name, cost: d.estCost * 0.6, color: 'CLR_AMBER' },
+        { name: d.model2Name, cost: d.estCost * 0.3, color: 'CLR_LAVENDER' },
+        { name: d.model3Name, cost: d.estCost * 0.1, color: 'CLR_BLUE' }
+    ];
+    const maxCost = Math.max(...models.map(m => m.cost), 0.01);
+
+    models.forEach((m, i) => {
+        elements.push({ type: 'costRow', x: tokX, y, w: tokW, name: m.name, cost: m.cost, maxCost, color: m.color, id: `cost_model_${i}` });
+        y += H_TOK;
+    });
+
+    return elements;
+}
+
+function buildModels(CX, CY, CW, CH, monthly) {
+    const d = sampleData;
+    const elements = [];
+    const prefix = monthly ? 'mm_' : 'tm_';
+    const multiplier = monthly ? 15 : 1;
+
+    const models = [
+        { name: d.model1Name, inp: d.model1In * multiplier, out: d.model1Out * multiplier, color: 'CLR_AMBER' },
+        { name: d.model2Name, inp: d.model2In * multiplier, out: d.model2Out * multiplier, color: 'CLR_LAVENDER' },
+        { name: d.model3Name, inp: d.model3In * multiplier, out: d.model3Out * multiplier, color: 'CLR_BLUE' }
+    ];
+    const maxTotal = Math.max(...models.map(m => m.inp + m.out));
+
+    let y = CY - 4;
+    models.forEach((m, i) => {
+        elements.push({ type: 'modelRow', x: CX, y, w: CW, model: m, maxTotal, id: `${prefix}model_${i}` });
+        y += H_SM + 8;
+    });
+
+    return elements;
+}
+
+function buildCode(CX, CY, CW, CH, monthly) {
+    const d = sampleData;
+    const elements = [];
+    const prefix = monthly ? 'mc_' : 'tc_';
+    const mult = monthly ? 4 : 1;
+
+    const leftX = CX;
+    const leftW = Math.floor(CW / 2) - 8;
+    let y = CY - 4;
+
+    // Sessions
+    elements.push({ type: 'sectionHeader', x: leftX, y, text: 'SESSIONS', color: 'CLR_AMBER', id: `${prefix}sec_sessions` });
+    elements.push({ type: 'text', x: leftX + leftW, y, text: String(d.sessions * mult), font: 'md', color: 'CLR_TEXT_BRIGHT', datum: 'TR', id: `${prefix}val_sessions` });
+    y += H_MD;
+
+    // Lines
+    elements.push({ type: 'sectionHeader', x: leftX, y, text: 'LINES', color: 'CLR_AMBER', id: `${prefix}sec_lines` });
+    y += H_SM;
+    elements.push({ type: 'text', x: leftX + leftW, y, text: `+${d.linesAdded * mult} / -${d.linesRemoved * mult}`, font: 'sm', color: 'CLR_SKY', datum: 'TR', id: `${prefix}val_lines` });
+    y += H_SM + 2;
+
+    // Commits
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW, label: 'COMMITS', value: String(d.commits * mult), color: 'CLR_PEACH', id: `${prefix}row_commits` });
+    y += H_SM + 2;
+
+    // PRs
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW, label: 'PULL REQS', value: String(d.pullReqs * mult), color: 'CLR_PEACH', id: `${prefix}row_prs` });
+    y += H_SM + 2;
+
+    // Cost
+    elements.push({ type: 'text', x: leftX, y, text: 'EST. COST', font: 'sm', color: 'CLR_AMBER', datum: 'TL', id: `${prefix}lbl_cost` });
+    elements.push({ type: 'text', x: leftX + leftW, y, text: `$${(d.estCost * mult).toFixed(2)}`, font: 'sm', color: 'CLR_SKY', datum: 'TR', id: `${prefix}val_cost` });
+
+    // Divider
+    const divX = CX + Math.floor(CW / 2) - 2;
+    elements.push({ type: 'vline', x: divX, y: CY, h: CH, color: 'CLR_AMBER', id: `${prefix}div` });
+
+    // Right column
+    const rightX = divX + 6;
+    const rightW = CW - (rightX - CX) - 2;
+    let ry = CY - 4;
+
+    elements.push({ type: 'sectionHeader', x: rightX, y: ry, text: 'TOOL ACCEPTANCE', color: 'CLR_AMBER', id: `${prefix}sec_accept` });
+    ry += H_SM + 2;
+
+    elements.push({ type: 'acceptBar', x: rightX, y: ry, w: rightW, label: 'EDIT', accepted: d.editAccepted, rejected: d.editRejected, color: 'CLR_SKY', id: `${prefix}bar_edit` });
+    ry += H_SM + 2;
+
+    elements.push({ type: 'acceptBar', x: rightX, y: ry, w: rightW, label: 'WRITE', accepted: d.writeAccepted, rejected: d.writeRejected, color: 'CLR_LAVENDER', id: `${prefix}bar_write` });
+    ry += H_SM + 4;
+
+    elements.push({ type: 'hline', x: rightX, y: ry, w: rightW, color: 'CLR_TEXT_DIM', id: `${prefix}hline` });
+    ry += 16;
+
+    elements.push({ type: 'sectionHeader', x: rightX, y: ry, text: 'USERS', color: 'CLR_AMBER', id: `${prefix}sec_users` });
+    ry += H_SM + 2;
+
+    elements.push({ type: 'statusRow', x: rightX, y: ry, w: rightW, label: d.userEmail, value: `$${(d.userCost * mult).toFixed(2)}`, color: 'CLR_PEACH', id: `${prefix}row_user` });
+
+    return elements;
+}
+
+function buildStatus(CX, CY, CW, CH) {
+    const d = sampleData;
+    const elements = [];
+
+    const leftX = CX;
+    const leftW = Math.floor(CW / 2) - 8;
+    let y = CY - 4;
+
+    // Network section
+    elements.push({ type: 'sectionHeader', x: leftX, y, text: 'NETWORK', color: 'CLR_AMBER', id: 'st_sec_net' });
+    y += H_SM;
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW, label: 'WiFi', value: d.wifiStatus, color: d.wifiStatus === 'CONNECTED' ? 'CLR_STATUS_OK' : 'CLR_STATUS_ERR', id: 'st_wifi' });
+    y += H_SM;
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW, label: 'IP', value: d.ipAddress, color: 'CLR_PEACH', id: 'st_ip' });
+    y += H_SM;
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW - 22, label: 'Signal', value: `${d.signalDbm} dBm`, color: 'CLR_PEACH', id: 'st_signal' });
+    elements.push({ type: 'signalBars', x: leftX + leftW - 18, y: y + 1, rssi: d.signalDbm, id: 'st_bars' });
+    y += H_SM + 6;
+
+    // API section
+    elements.push({ type: 'sectionHeader', x: leftX, y, text: 'API', color: 'CLR_LAVENDER', id: 'st_sec_api' });
+    y += H_SM;
+    const apiClr = d.apiStatus === 'OK' ? 'CLR_STATUS_OK' : 'CLR_STATUS_ERR';
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW, label: 'Status', value: d.apiStatus, color: apiClr, id: 'st_api' });
+    y += H_SM;
+    elements.push({ type: 'statusRow', x: leftX, y, w: leftW, label: 'Fetched', value: d.fetchedAgo, color: 'CLR_PEACH', id: 'st_fetched' });
+
+    // Divider
+    const divX = CX + Math.floor(CW / 2) - 2;
+    elements.push({ type: 'vline', x: divX, y: CY, h: CH, color: 'CLR_AMBER', id: 'st_div' });
+
+    // Right column
+    const rightX = divX + 6;
+    const rightW = CW - (rightX - CX) - 2;
+    let ry = CY - 4;
+
+    elements.push({ type: 'sectionHeader', x: rightX, y: ry, text: 'SYSTEM', color: 'CLR_BLUE', id: 'st_sec_sys' });
+    ry += H_SM;
+    elements.push({ type: 'statusRow', x: rightX, y: ry, w: rightW, label: 'Heap', value: `${d.heapKB} KB`, color: 'CLR_PEACH', id: 'st_heap' });
+    ry += H_SM;
+    elements.push({ type: 'statusRow', x: rightX, y: ry, w: rightW, label: 'PSRAM', value: `${d.psramKB} KB`, color: 'CLR_PEACH', id: 'st_psram' });
+    ry += H_SM;
+    elements.push({ type: 'statusRow', x: rightX, y: ry, w: rightW, label: 'Uptime', value: `${d.uptimeH}h ${d.uptimeM}m`, color: 'CLR_PEACH', id: 'st_uptime' });
+    ry += H_SM + 6;
+
+    elements.push({ type: 'sectionHeader', x: rightX, y: ry, text: 'FIRMWARE', color: 'CLR_SALMON', id: 'st_sec_fw' });
+    ry += H_SM;
+    elements.push({ type: 'text', x: rightX, y: ry, text: d.fwVersion, font: 'sm', color: 'CLR_TEXT_DIM', datum: 'TL', id: 'st_fw_ver' });
+    ry += H_SM;
+
+    const boardName = document.getElementById('boardSelect').value === 'waveshare' ? 'Waveshare 1.47' : 'T-Display-S3';
+    elements.push({ type: 'text', x: rightX, y: ry, text: boardName, font: 'sm', color: 'CLR_TEXT_DIM', datum: 'TL', id: 'st_board' });
+
+    return elements;
+}
+
+function formatCountdown(mins) {
+    if (mins <= 0) return '0:00';
+    const d = Math.floor(mins / 1440);
+    const h = Math.floor((mins % 1440) / 60);
+    const m = mins % 60;
+    if (d > 0) return `${d}d ${h}h${m}m`;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:00`;
+    return `${m}:00`;
+}
+
+function buildClaudeAi(CX, CY, CW, CH) {
+    const d = sampleData;
+    const elements = [];
+
+    const gaugeR = 38;
+    const leftCx = CX + gaugeR + 4;
+    const rightCx = CX + CW - gaugeR - 4;
+    const gaugeCy = CY + gaugeR - 4;
+    const barW = 6;
+    const barGap = 4;
+
+    // Donut gauges (arc + center percentage only)
+    elements.push({ type: 'donutGauge', x: leftCx, y: gaugeCy, r: gaugeR, thickness: 7, pct: d.cai5hPct, color: 'CLR_SKY', pctFont: 'md', pctColor: 'CLR_TEXT_BRIGHT', id: 'cai_5h' });
+    elements.push({ type: 'donutGauge', x: rightCx, y: gaugeCy, r: gaugeR, thickness: 7, pct: d.cai7dPct, color: 'CLR_LAVENDER', pctFont: 'md', pctColor: 'CLR_TEXT_BRIGHT', id: 'cai_7d' });
+
+    // Countdown labels (separate text elements below each donut)
+    elements.push({ type: 'text', x: leftCx, y: gaugeCy + gaugeR + 4, text: formatCountdown(d.cai5hResetMins), font: 'sm', color: 'CLR_SKY', datum: 'TC', id: 'cai_5h_label' });
+    elements.push({ type: 'text', x: rightCx, y: gaugeCy + gaugeR + 4, text: formatCountdown(d.cai7dResetMins), font: 'sm', color: 'CLR_LAVENDER', datum: 'TC', id: 'cai_7d_label' });
+
+    // Countdown bars (vertical, to the right of each donut)
+    const barH = gaugeR * 2;
+    elements.push({ type: 'countdownBar', x: leftCx + gaugeR + barGap, y: gaugeCy - gaugeR, w: barW, h: barH, pct: Math.min(1, d.cai5hResetMins / 300), color: 'CLR_SKY', id: 'cai_5h_cd' });
+    elements.push({ type: 'countdownBar', x: rightCx + gaugeR + barGap, y: gaugeCy - gaugeR, w: barW, h: barH, pct: Math.min(1, d.cai7dResetMins / 10080), color: 'CLR_LAVENDER', id: 'cai_7d_cd' });
+
+    // Bars below donuts
+    let barY = gaugeCy + gaugeR + 20;
+    elements.push({ type: 'limitRow', x: CX, y: barY, w: CW, label: 'OPUS', pct: d.caiOpusPct, reset: '', color: 'CLR_AMBER', id: 'cai_opus' });
+    barY += 22;
+    elements.push({ type: 'limitRow', x: CX, y: barY, w: CW, label: 'SONNET', pct: d.caiSonnetPct, reset: '', color: 'CLR_BLUE', id: 'cai_sonnet' });
+    barY += 22;
+    elements.push({ type: 'limitRow', x: CX, y: barY, w: CW, label: `EXTRA $${d.caiExtraUsed}/$${d.caiExtraLimit}`, pct: d.caiExtraLimit > 0 ? Math.round(d.caiExtraUsed / d.caiExtraLimit * 100) : 0, reset: '', color: 'CLR_SALMON', id: 'cai_extra' });
+
+    return elements;
+}
+
+// ============================================================
+// V2 Screen Builders (match firmware-v2 onDraw() layout)
+// ============================================================
+function buildClaudeAiV2(CX, CY, CW, CH) {
+    const d = sampleData;
+    const elements = [];
+
+    // Matches claudeai_screen.cpp::onDraw() — v1-style layout
+    // Uses absolute coordinates matching firmware constants
+    const gaugeR = 38;
+    const thickness = 7;
+    const clockY = CY + 2;          // Top of countdown clocks
+    const gaugeCY = CY + 78;        // Gauge center Y (clock_h=28 + gap=12 + gaugeR=38)
+    const barH = 120;               // Height of vertical bars and divider
+
+    // ── LEFT: 5-hour ─────────────────────────
+    const lCx = CX + gaugeR + 4;    // = ~96
+    const pct5h = d.cai5hPct / 100;
+    const color5h = pct5h > 0.8 ? 'CLR_RED' : pct5h > 0.5 ? 'CLR_AMBER' : 'CLR_SKY';
+
+    // Countdown clock above gauge
+    elements.push({ type: 'text', x: lCx, y: clockY, text: formatCountdown(d.cai5hResetMins), font: 'lg', color: 'CLR_TEXT_BRIGHT', datum: 'TC', id: 'v2_5h_clock' });
+
+    // Donut gauge
+    elements.push({ type: 'donutGauge', x: lCx, y: gaugeCY, r: gaugeR, thickness: thickness, pct: d.cai5hPct, color: color5h, pctFont: 'md', pctColor: 'CLR_TEXT_BRIGHT', id: 'v2_cai_5h' });
+
+    // Vertical countdown bar (right of gauge)
+    const lBarX = lCx + gaugeR + 6;  // = ~144
+    const cdPct5h = Math.min(1, d.cai5hResetMins / 300);
+    elements.push({ type: 'countdownBar', x: lBarX, y: clockY, w: 10, h: barH, pct: cdPct5h, color: color5h, id: 'v2_5h_bar' });
+
+    // ── Vertical divider ─────────────────────
+    const divX = CX + Math.floor(CW / 2) - 1;
+    elements.push({ type: 'vline', x: divX, y: clockY, h: barH, color: 'CLR_AMBER', id: 'v2_div' });
+
+    // ── RIGHT: 7-day ─────────────────────────
+    const halfW = Math.floor(CW / 2);
+    const rCx = CX + halfW + gaugeR + 4;  // = ~244
+    const pct7d = d.cai7dPct / 100;
+    const color7d = pct7d > 0.8 ? 'CLR_RED' : pct7d > 0.5 ? 'CLR_AMBER' : 'CLR_LAVENDER';
+
+    // Countdown clock
+    elements.push({ type: 'text', x: rCx, y: clockY, text: formatCountdown(d.cai7dResetMins), font: 'lg', color: 'CLR_PEACH', datum: 'TC', id: 'v2_7d_clock' });
+
+    // Donut gauge
+    elements.push({ type: 'donutGauge', x: rCx, y: gaugeCY, r: gaugeR, thickness: thickness, pct: d.cai7dPct, color: color7d, pctFont: 'md', pctColor: 'CLR_TEXT_BRIGHT', id: 'v2_cai_7d' });
+
+    // Vertical countdown bar
+    const rBarX = rCx + gaugeR + 6;  // = ~292
+    const cdPct7d = Math.min(1, d.cai7dResetMins / 10080);
+    elements.push({ type: 'countdownBar', x: rBarX, y: clockY, w: 10, h: barH, pct: cdPct7d, color: color7d, id: 'v2_7d_bar' });
+
+    return elements;
+}
+
+function buildStatusV2(CX, CY, CW, CH) {
+    const d = sampleData;
+    const elements = [];
+    let y = CY;
+
+    // Status rows (y += 15 each, matching status_screen.cpp)
+    elements.push({ type: 'statusRow', x: CX, y: y, w: CW, label: 'WIFI', value: 'CONNECTED', color: 'CLR_STATUS_OK', valueColor: 'CLR_TEXT_DIM', id: 'v2_st_wifi' });
+    y += 15;
+    elements.push({ type: 'statusRow', x: CX, y: y, w: CW, label: 'SIGNAL', value: '-42 DBM', color: 'CLR_STATUS_OK', valueColor: 'CLR_TEXT_DIM', id: 'v2_st_rssi' });
+    y += 15;
+    elements.push({ type: 'statusRow', x: CX, y: y, w: CW, label: 'IP', value: '192.168.1.42', color: 'CLR_AMBER', valueColor: 'CLR_TEXT_DIM', id: 'v2_st_ip' });
+    y += 15;
+    elements.push({ type: 'statusRow', x: CX, y: y, w: CW, label: 'UPTIME', value: '2H 14M', color: 'CLR_AMBER', valueColor: 'CLR_TEXT_DIM', id: 'v2_st_uptime' });
+    y += 15;
+    elements.push({ type: 'statusRow', x: CX, y: y, w: CW, label: 'REFRESH IN', value: '247s', color: 'CLR_AMBER', valueColor: 'CLR_TEXT_DIM', id: 'v2_st_refresh' });
+    y += 15;
+    elements.push({ type: 'statusRow', x: CX, y: y, w: CW, label: 'FIRMWARE', value: 'v2.0.0', color: 'CLR_TEXT_DIM', valueColor: 'CLR_TEXT_DIM', id: 'v2_st_fw' });
+    y += 17;
+
+    // Separator + data cascade
+    elements.push({ type: 'hline', x: CX, y: y, w: CW, thickness: 1, color: 'CLR_TEXT_DIM', id: 'v2_st_sep' });
+    y += 3;
+    const cascadeH = CY + CH - y;
+    if (cascadeH > 8) {
+        elements.push({ type: 'dataCascade', x: CX, y: y, w: CW, h: cascadeH, color: 'CLR_AMBER', id: 'v2_st_cascade' });
+    }
+
+    return elements;
+}
+
+function buildSetupV2(CX, CY, CW, CH) {
+    // Setup screen is frameless (wantsFrame=false) — uses full screen
+    // But in the designer we still position within content rect for preview
+    const elements = [];
+    const cx = Math.floor(CW / 2) + CX;
+    let y = CY + 10;
+
+    elements.push({ type: 'text', x: cx, y: y, text: 'CLAUDEGAUGE SETUP', font: 'md', color: 'CLR_AMBER', datum: 'TC', id: 'v2_setup_title' });
+    y += 30;
+    elements.push({ type: 'text', x: cx, y: y, text: 'CONNECT TO WIFI:', font: 'sm', color: 'CLR_SKY', datum: 'TC', id: 'v2_setup_instr' });
+    y += 18;
+    elements.push({ type: 'text', x: cx, y: y, text: 'ClaudeGauge-A1B2', font: 'lg', color: 'CLR_AMBER', datum: 'TC', id: 'v2_setup_ap' });
+    y += 36;
+    elements.push({ type: 'text', x: cx, y: y, text: 'THEN OPEN:', font: 'sm', color: 'CLR_SKY', datum: 'TC', id: 'v2_setup_open' });
+    y += 18;
+    elements.push({ type: 'text', x: cx, y: y, text: 'HTTP://192.168.4.1', font: 'md', color: 'CLR_AMBER', datum: 'TC', id: 'v2_setup_url' });
+
+    return elements;
+}
+
+let screenElements = [];
+let customElements = [[], [], [], [], [], [], []];
+let deletedElementIds = new Set();  // track deleted generated element IDs per-screen: "screenIdx:elementId"
+let nextCustomId = 1;
+
+function getAllElements(idx) {
+    return [...(screenElements[idx] || []), ...(customElements[idx] || [])];
+}
+
+function generateId(type) {
+    return `custom_${type}_${nextCustomId++}`;
+}
+
+function rebuildScreens(preservePositions = false) {
+    const oldScreens = preservePositions ? screenElements : null;
+    screenElements = buildScreenElements();
+    // Filter out elements that were explicitly deleted by the user (per-screen)
+    if (deletedElementIds.size > 0) {
+        for (let si = 0; si < screenElements.length; si++) {
+            screenElements[si] = screenElements[si].filter(el => !el.id || !deletedElementIds.has(`${si}:${el.id}`));
+        }
+    }
+    if (oldScreens) {
+        // Merge saved positions/properties from old elements into new ones by ID
+        for (let si = 0; si < screenElements.length; si++) {
+            const oldEls = oldScreens[si] || [];
+            const oldById = {};
+            oldEls.forEach(e => { if (e.id) oldById[e.id] = e; });
+            screenElements[si].forEach(el => {
+                const old = oldById[el.id];
+                if (old) {
+                    // Copy all properties from old element (preserves any customizations)
+                    for (const key of Object.keys(old)) {
+                        el[key] = old[key];
+                    }
+                }
+            });
+        }
+    }
+}
+
+// ============================================================
+// Element Toolbox
+// ============================================================
+const TOOLBOX_GROUPS = [
+    {
+        name: 'Text',
+        items: [
+            { label: 'Text Label', type: 'text', icon: '#FF9900',
+              create: (x, y) => ({ type: 'text', x, y, text: 'LABEL', font: 'sm', color: 'CLR_AMBER', datum: 'TL' }) },
+            { label: 'Section Header', type: 'sectionHeader', icon: '#FF9900',
+              create: (x, y) => ({ type: 'sectionHeader', x, y, text: 'SECTION', color: 'CLR_AMBER' }) },
+            { label: 'Cost Display', type: 'cost', icon: '#FFCC99',
+              create: (x, y) => ({ type: 'cost', x, y, value: 0.00, font: 'lg', color: 'CLR_PEACH' }) },
+        ]
+    },
+    {
+        name: 'Data Rows',
+        items: [
+            { label: 'Status Row', type: 'statusRow', icon: '#FFCC99',
+              create: (x, y) => ({ type: 'statusRow', x, y, w: 120, label: 'Label', value: 'Value', color: 'CLR_PEACH' }) },
+            { label: 'Cost Row', type: 'costRow', icon: '#CC99CC',
+              create: (x, y) => ({ type: 'costRow', x, y, w: 120, name: 'model', cost: 1.00, maxCost: 5.00, color: 'CLR_LAVENDER' }) },
+            { label: 'Model Row', type: 'modelRow', icon: '#9999FF',
+              create: (x, y) => ({ type: 'modelRow', x, y, w: 200, model: { name: 'model', color: 'CLR_AMBER', inp: 100000, out: 50000 }, maxTotal: 200000 }) },
+            { label: 'Accept Bar', type: 'acceptBar', icon: '#99CCFF',
+              create: (x, y) => ({ type: 'acceptBar', x, y, w: 120, label: 'TOOL', accepted: 75, rejected: 25, color: 'CLR_SKY' }) },
+            { label: 'Limit Row', type: 'limitRow', icon: '#99CCFF',
+              create: (x, y) => ({ type: 'limitRow', x, y, w: 200, label: 'LIMIT', pct: 50, reset: '', color: 'CLR_SKY' }) },
+            { label: 'Donut Gauge', type: 'donutGauge', icon: '#99CCFF',
+              create: (x, y) => ({ type: 'donutGauge', x, y, r: 38, thickness: 7, pct: 66, label: 'GAUGE', color: 'CLR_SKY' }) },
+        ]
+    },
+    {
+        name: 'Dividers',
+        items: [
+            { label: 'Vertical Line', type: 'vline', icon: '#FF9900',
+              create: (x, y) => ({ type: 'vline', x, y, h: 80, color: 'CLR_AMBER' }) },
+            { label: 'Horizontal Line', type: 'hline', icon: '#4C4C4C',
+              create: (x, y) => ({ type: 'hline', x, y, w: 80, color: 'CLR_TEXT_DIM' }) },
+            { label: 'Signal Bars', type: 'signalBars', icon: '#99CCFF',
+              create: (x, y) => ({ type: 'signalBars', x, y, rssi: -58 }) },
+            { label: 'Countdown Bar', type: 'countdownBar', icon: '#99CCFF',
+              create: (x, y) => ({ type: 'countdownBar', x, y, w: 6, h: 60, pct: 0.47, color: 'CLR_SKY' }) },
+        ]
+    }
+];
+
+function buildToolbox() {
+    const body = document.getElementById('toolboxBody');
+    body.innerHTML = '';
+    TOOLBOX_GROUPS.forEach((group, gi) => {
+        const div = document.createElement('div');
+        div.className = 'toolbox-group';
+        div.innerHTML = `<div class="toolbox-group-title">${group.name}</div>`;
+        group.items.forEach((item, ii) => {
+            const el = document.createElement('div');
+            el.className = 'toolbox-item';
+            el.innerHTML = `<div class="item-icon" style="background:${item.icon}"></div>${item.label}`;
+            el.draggable = true;
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ gi, ii }));
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+            div.appendChild(el);
+        });
+        body.appendChild(div);
+    });
+}
+
+function toggleToolbox() {
+    document.getElementById('toolbox').classList.toggle('collapsed');
+}
+
+// ============================================================
+// Canvas Rendering
+// ============================================================
+const canvas = document.getElementById('display');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = SCR_W * zoom;
+    canvas.height = SCR_H * zoom;
+    canvas.style.width = (SCR_W * zoom) + 'px';
+    canvas.style.height = (SCR_H * zoom) + 'px';
+    ctx.imageSmoothingEnabled = false;
+}
+
+function clr(colorName) {
+    return COLORS[colorName] || colorName;
+}
+
+function setFont(fontKey) {
+    const size = FONTS[fontKey] || 12;
+    if (fontKey === 'builtin') {
+        ctx.font = `${size * zoom}px monospace`;
+    } else {
+        ctx.font = `${size * zoom}px Antonio, sans-serif`;
+    }
+}
+
+// Measure text width using VLW atlas (or fallback to canvas)
+function vlwMeasure(text, fontKey) {
+    const pxSize = String(FONTS[fontKey] || fontKey);
+    const fd = fontAtlas && fontAtlas[pxSize];
+    if (!fd) {
+        setFont(fontKey);
+        return { w: ctx.measureText(text).width / zoom, h: FONT_HEIGHT[fontKey] || FONTS[fontKey] || 12 };
+    }
+    let w = 0;
+    for (const ch of text) {
+        const g = fd.glyphs[ch];
+        if (g) w += g.xAdv;
+    }
+    return { w, h: fd.yAdvance };
+}
+
+// Render text using VLW glyph bitmaps (pixel-perfect match with TFT_eSPI)
+function vlwDrawText(x, y, text, fontKey, colorHex) {
+    const pxSize = String(FONTS[fontKey] || fontKey);
+    const fd = fontAtlas && fontAtlas[pxSize];
+    if (!fd) {
+        // Fallback to canvas text (builtin font or atlas not loaded)
+        setFont(fontKey);
+        ctx.fillStyle = colorHex;
+        ctx.textBaseline = 'top';
+        ctx.fillText(text, x * zoom, y * zoom);
+        return;
+    }
+    // Parse color to RGB
+    const cr = parseInt(colorHex.slice(1, 3), 16);
+    const cg = parseInt(colorHex.slice(3, 5), 16);
+    const cb = parseInt(colorHex.slice(5, 7), 16);
+    const maxAsc = fd.maxAscent;
+    let cursorX = x;
+    for (const ch of text) {
+        const gl = fd.glyphs[ch];
+        if (!gl || !gl.bmp) { cursorX += gl ? gl.xAdv : 0; continue; }
+        // Decode bitmap once
+        if (!gl._decoded) {
+            const bin = atob(gl.bmp);
+            gl._decoded = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) gl._decoded[i] = bin.charCodeAt(i);
+        }
+        const alpha = gl._decoded;
+        const gw = gl.w, gh = gl.h;
+        const gx = Math.round((cursorX + gl.dX) * zoom);
+        const gy = Math.round((y + maxAsc - gl.dY) * zoom);
+        const sw = gw * zoom, sh = gh * zoom;
+        // Read existing pixels, blend glyph alpha, write back
+        const imgData = ctx.getImageData(gx, gy, sw, sh);
+        const d = imgData.data;
+        for (let py = 0; py < gh; py++) {
+            for (let px = 0; px < gw; px++) {
+                const a = alpha[py * gw + px];
+                if (a === 0) continue;
+                const af = a / 255;
+                // Fill zoom x zoom block
+                for (let zy = 0; zy < zoom; zy++) {
+                    for (let zx = 0; zx < zoom; zx++) {
+                        const idx = ((py * zoom + zy) * sw + px * zoom + zx) * 4;
+                        // Alpha blend: src over dst
+                        d[idx]     = Math.round(cr * af + d[idx]     * (1 - af));
+                        d[idx + 1] = Math.round(cg * af + d[idx + 1] * (1 - af));
+                        d[idx + 2] = Math.round(cb * af + d[idx + 2] * (1 - af));
+                        d[idx + 3] = 255;
+                    }
+                }
+            }
+        }
+        ctx.putImageData(imgData, gx, gy);
+        cursorX += gl.xAdv;
+    }
+}
+
+function drawText(x, y, text, fontKey, color, datum = 'TL') {
+    const colorHex = clr(color);
+    const m = vlwMeasure(text, fontKey);
+    const tw = m.w;
+    const fh = m.h;
+
+    let dx = x, dy = y;
+
+    if (datum === 'TR') dx -= tw;
+    else if (datum === 'TC') { dx -= tw / 2; }
+    else if (datum === 'MC') { dx -= tw / 2; dy -= fh / 2; }
+    else if (datum === 'ML') { /* dx unchanged */ dy -= fh / 2; }
+    else if (datum === 'MR') { dx -= tw; dy -= fh / 2; }
+
+    vlwDrawText(dx, dy, text, fontKey, colorHex);
+
+    // Return bounding box using TFT_eSPI yAdvance height
+    return { x: dx, y: dy, w: tw, h: fh };
+}
+
+function drawRect(x, y, w, h, color) {
+    ctx.fillStyle = clr(color);
+    ctx.fillRect(x * zoom, y * zoom, w * zoom, h * zoom);
+}
+
+function drawRoundRect(x, y, w, h, r, color) {
+    ctx.fillStyle = clr(color);
+    const Z = zoom;
+    ctx.beginPath();
+    ctx.roundRect(x * Z, y * Z, w * Z, h * Z, r * Z);
+    ctx.fill();
+}
+
+function drawHLine(x, y, w, color, thickness) {
+    const t = thickness || 1;
+    ctx.fillStyle = clr(color);
+    ctx.fillRect(x * zoom, y * zoom, w * zoom, t * zoom);
+}
+
+function drawVLine(x, y, h, color, thickness) {
+    const t = thickness || 2;
+    ctx.fillStyle = clr(color);
+    ctx.fillRect(x * zoom, y * zoom, t * zoom, h * zoom);
+}
+
+function drawCircle(cx, cy, r, color) {
+    ctx.fillStyle = clr(color);
+    ctx.beginPath();
+    ctx.arc(cx * zoom, cy * zoom, r * zoom, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawLine(x1, y1, x2, y2, color) {
+    ctx.strokeStyle = clr(color);
+    ctx.lineWidth = zoom;
+    ctx.beginPath();
+    ctx.moveTo(x1 * zoom, y1 * zoom);
+    ctx.lineTo(x2 * zoom, y2 * zoom);
+    ctx.stroke();
+}
+
+function drawSignalBars(x, y, rssi) {
+    // Match firmware UIWidgets::drawSignalBars exactly
+    let bars = 0;
+    if (rssi > -55) bars = 4;
+    else if (rssi > -65) bars = 3;
+    else if (rssi > -75) bars = 2;
+    else if (rssi > -85) bars = 1;
+    for (let i = 0; i < 4; i++) {
+        const bh = 3 + i * 3;
+        const bx = x + i * 5;
+        const by = y + 12 - bh;
+        const c = i < bars ? 'CLR_STATUS_OK' : 'CLR_TEXT_DIM';
+        drawRect(bx, by, 3, bh, c);
+    }
+}
+
+function drawProgressBar(x, y, w, h, pct, fg, bg) {
+    const r = Math.floor(h / 2);
+    drawRoundRect(x, y, w, h, r, bg);
+    const fw = Math.floor(w * Math.min(Math.max(pct, 0), 1));
+    if (fw > h) drawRoundRect(x, y, fw, h, r, fg);
+    else if (fw > 0) drawCircle(x + r, y + r, r, fg);
+}
+
+// ============================================================
+// LCARS Frame Drawing
+// ============================================================
+function fillQuarterCircle(cx, cy, r, color, quadrant) {
+    ctx.fillStyle = clr(color);
+    const Z = zoom;
+    for (let y = 0; y <= r; y++) {
+        const x = Math.floor(Math.sqrt(r * r - y * y));
+        if (quadrant === 0) ctx.fillRect((cx - x) * Z, (cy - y) * Z, x * Z, Z);
+        else if (quadrant === 1) ctx.fillRect(cx * Z, (cy - y) * Z, x * Z, Z);
+        else if (quadrant === 2) ctx.fillRect(cx * Z, (cy + y) * Z, x * Z, Z);
+        else if (quadrant === 3) ctx.fillRect((cx - x) * Z, (cy + y) * Z, x * Z, Z);
+    }
+}
+
+function drawLcarsFrame(page, totalPages, countdown) {
+    const SW = SIDEBAR_W, R = ELBOW_R, TH = TOPBAR_H, BH = BOTBAR_H;
+
+    // Top-left elbow
+    drawRect(0, 0, SW, TH + R, 'CLR_AMBER');
+    drawRect(SW, 0, R, TH, 'CLR_AMBER');
+    fillQuarterCircle(SW, TH, R, 'CLR_BG', 2);
+
+    // Top bar: peach pill-bar segment on the right (rounded left cap, straight right edge)
+    const seg2X = 210;
+    const tbarY = 1, tbarH = TH - 2;
+    drawRoundRect(seg2X, tbarY, SCR_W - seg2X + tbarH, tbarH, Math.floor(tbarH / 2), 'CLR_PEACH');
+
+    // Sidebar segments
+    const segTop = TH + R + 2;
+    const segBot = SCR_H - BH - R - 2;
+    const segH = segBot - segTop;
+    const segColors = ['CLR_SALMON', 'CLR_LAVENDER', 'CLR_BLUE'];
+    const eachH = Math.floor((segH - 4) / 3);
+
+    for (let i = 0; i < 3; i++) {
+        const sy = segTop + i * (eachH + 2);
+        drawRect(0, sy, SW - 4, eachH, segColors[i]);
+        drawRoundRect(SW - 8, sy, 8, eachH, 4, segColors[i]);
+    }
+
+    // Bottom-left elbow
+    drawRect(0, SCR_H - BH - R, SW, BH + R, 'CLR_TAN');
+    drawRect(SW, SCR_H - BH, R, BH, 'CLR_TAN');
+    fillQuarterCircle(SW, SCR_H - BH, R, 'CLR_BG', 1);
+
+    // ========== BOTTOM BAR (decorative pills only — other elements are draggable) ==========
+    const bbarY = SCR_H - BH + 1;
+    const bbarH = BH - 2;
+    const bbarR = Math.floor(bbarH / 2);
+    const bbarX = SW + R + 4;
+    const sigX = SCR_W - 120 - 4;
+
+}
+
+// ============================================================
+// Element Rendering
+// ============================================================
+function formatCount(value) {
+    if (value >= 1e9) return (value / 1e9).toFixed(1) + 'B';
+    if (value >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+    if (value >= 1e3) return (value / 1e3).toFixed(1) + 'K';
+    return String(value);
+}
+
+function formatCost(cost) {
+    return cost >= 1000 ? `$${cost.toFixed(0)}` : `$${cost.toFixed(2)}`;
+}
+
+// Returns bounding box {x, y, w, h} in logical coords
+function renderElement(el) {
+    let bbox = null;
+    const s = el.scale || 1;
+    const useScale = s !== 1;
+
+    if (useScale) {
+        ctx.save();
+        // Scale around element origin
+        ctx.translate(el.x * zoom, el.y * zoom);
+        ctx.scale(s, s);
+        ctx.translate(-el.x * zoom, -el.y * zoom);
+    }
+
+    switch (el.type) {
+        case 'text': {
+            bbox = drawText(el.x, el.y, el.text, el.font, el.color, el.datum || 'TL');
+            break;
+        }
+        case 'cost': {
+            const txt = formatCost(el.value);
+            bbox = drawText(el.x, el.y, txt, el.font, el.color, 'TL');
+            break;
+        }
+        case 'sectionHeader': {
+            drawRect(el.x, el.y + 5, 3, 8, el.color);
+            const b = drawText(el.x + 6, el.y, el.text, 'sm', el.color, 'TL');
+            bbox = { x: el.x, y: el.y, w: b.w + 6, h: H_SM };
+            break;
+        }
+        case 'statusRow': {
+            drawText(el.x, el.y, el.label, 'sm', 'CLR_LAVENDER', 'TL');
+            drawText(el.x + el.w, el.y, el.value, 'sm', el.color, 'TR');
+            bbox = { x: el.x, y: el.y, w: el.w, h: H_SM };
+            break;
+        }
+        case 'costRow': {
+            // Shortened model name — matches firmware drawCostRow
+            let shortName = el.name.replace('claude-', '');
+            if (shortName.length > 12) shortName = shortName.substring(0, 10) + '..';
+
+            // Firmware: dot at (x+2, y+5), text at (x+10, y-3), bar at (x, y+17)
+            drawCircle(el.x + 2, el.y + 5, 2, el.color);
+            drawText(el.x + 10, el.y - 3, shortName, 'sm', el.color, 'TL');
+            drawText(el.x + el.w, el.y - 3, formatCost(el.cost), 'sm', 'CLR_PEACH', 'TR');
+            const pct = el.cost / el.maxCost;
+            drawProgressBar(el.x, el.y + 17, el.w, 4, pct, el.color, 'CLR_BAR_BG');
+            bbox = { x: el.x, y: el.y - 3, w: el.w, h: H_TOK };
+            break;
+        }
+        case 'modelRow': {
+            const m = el.model;
+            drawRect(el.x, el.y + 4, 3, 8, m.color);
+            drawText(el.x + 6, el.y, m.name, 'sm', m.color, 'TL');
+            drawText(el.x + el.w, el.y, `IN:${formatCount(m.inp)} OUT:${formatCount(m.out)}`, 'sm', 'CLR_PEACH', 'TR');
+            const pct = (m.inp + m.out) / el.maxTotal;
+            drawProgressBar(el.x, el.y + H_SM, el.w, 4, pct, m.color, 'CLR_BAR_BG');
+            bbox = { x: el.x, y: el.y, w: el.w, h: H_SM + 8 };
+            break;
+        }
+        case 'acceptBar': {
+            const total = el.accepted + el.rejected;
+            const pct = total > 0 ? el.accepted / total : 0;
+            drawText(el.x, el.y, el.label, 'sm', 'CLR_PEACH', 'TL');
+            drawText(el.x + 42, el.y, `${Math.round(pct * 100)}%`, 'sm', 'CLR_TEXT_BRIGHT', 'TL');
+            drawProgressBar(el.x + 72, el.y + 3, el.w - 72, 6, pct, el.color, 'CLR_BAR_BG');
+            bbox = { x: el.x, y: el.y, w: el.w, h: H_SM };
+            break;
+        }
+        case 'signalBars': {
+            let bars = 0;
+            if (el.rssi > -55) bars = 4;
+            else if (el.rssi > -65) bars = 3;
+            else if (el.rssi > -75) bars = 2;
+            else if (el.rssi > -85) bars = 1;
+            for (let i = 0; i < 4; i++) {
+                const bh = 3 + i * 3;
+                const bx = el.x + i * 5;
+                const by = el.y + 12 - bh;
+                const c = i < bars ? 'CLR_STATUS_OK' : 'CLR_TEXT_DIM';
+                drawRect(bx, by, 3, bh, c);
+            }
+            bbox = { x: el.x, y: el.y, w: 20, h: 14 };
+            break;
+        }
+        case 'vline': {
+            const vt = el.thickness || 2;
+            drawVLine(el.x, el.y, el.h, el.color, vt);
+            bbox = { x: el.x - 2, y: el.y, w: vt + 4, h: el.h };
+            break;
+        }
+        case 'hline': {
+            const ht = el.thickness || 1;
+            drawHLine(el.x, el.y, el.w, el.color, ht);
+            bbox = { x: el.x, y: el.y - 2, w: el.w, h: ht + 4 };
+            break;
+        }
+        case 'screenTitle': {
+            // Title text in top bar area — firmware uses barY + barH/2 - 1
+            bbox = drawText(el.x, el.y + Math.floor(TOPBAR_H / 2) - 1, el.text, el.font, el.color, el.datum || 'ML');
+            break;
+        }
+        case 'claudeText': {
+            bbox = drawText(el.x, el.y, el.text, el.font || 'md', el.color, 'MR');
+            break;
+        }
+        case 'sparkLogo': {
+            const lx = el.x, ly = el.y;
+            drawCircle(lx, ly, 4, el.color);
+            drawRect(lx - 1, ly - 7, 2, 3, el.color);
+            drawRect(lx - 1, ly + 5, 2, 3, el.color);
+            drawRect(lx - 7, ly - 1, 3, 2, el.color);
+            drawRect(lx + 5, ly - 1, 3, 2, el.color);
+            drawLine(lx - 5, ly - 5, lx - 3, ly - 3, el.color);
+            drawLine(lx + 3, ly - 3, lx + 5, ly - 5, el.color);
+            drawLine(lx - 5, ly + 5, lx - 3, ly + 3, el.color);
+            drawLine(lx + 3, ly + 3, lx + 5, ly + 5, el.color);
+            bbox = { x: lx - 8, y: ly - 8, w: 16, h: 16 };
+            break;
+        }
+        case 'pageChip': {
+            const r = Math.floor(el.h / 2);
+            drawRoundRect(el.x, el.y, el.w, el.h, r, el.color);
+            drawRect(el.x, el.y, r, el.h, el.color);
+            const pageBuf = `${currentScreen + 1}/${SCREEN_NAMES.length}`;
+            setFont('builtin');
+            ctx.fillStyle = clr('CLR_BG');
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+            ctx.fillText(pageBuf, (el.x + el.w / 2) * zoom, (el.y + el.h / 2) * zoom);
+            ctx.textAlign = 'left';
+            bbox = { x: el.x, y: el.y, w: el.w, h: el.h };
+            break;
+        }
+        case 'signalLabel': {
+            bbox = drawText(el.x, el.y, el.text, el.font || 'builtin', el.color, 'MR');
+            break;
+        }
+        case 'frameSignalBars': {
+            drawSignalBars(el.x, el.y, sampleData.signalDbm);
+            bbox = { x: el.x, y: el.y, w: 20, h: 14 };
+            break;
+        }
+        case 'countdownPill': {
+            const cr = Math.floor(el.h / 2);
+            // Pill background (square left edge, rounded right)
+            drawRoundRect(el.x, el.y, el.w, el.h, cr, el.color);
+            drawRect(el.x, el.y, cr, el.h, el.color);
+
+            // "REFRESH IN" label
+            setFont('builtin');
+            ctx.fillStyle = clr('CLR_BG');
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'left';
+            ctx.fillText('REFRESH IN', (el.x + 4) * zoom, (el.y + el.h / 2) * zoom);
+
+            // LCARS segmented progress bar
+            const barX = el.x + 64;
+            const barH = el.h - 4;
+            const barY = el.y + 2;
+            const barEnd = el.x + el.w - cr - 1;
+            const segW = 4;
+            const gap = 1;
+            const pct = 0.75;  // sample: 75% elapsed
+
+            // Count total segments
+            let nSegs = 0;
+            for (let tx = barX; tx + segW <= barEnd; tx += segW + gap) nSegs++;
+            const filledSegs = Math.round(nSegs * pct);
+
+            // Draw segments
+            let sx = barX;
+            let seg = 0;
+            while (sx + segW <= barEnd) {
+                const segColor = (seg < filledSegs) ? 'CLR_PEACH' : 'CLR_BG';
+                drawRect(sx, barY, segW, barH, segColor);
+                sx += segW + gap;
+                seg++;
+            }
+
+            ctx.textAlign = 'left';
+            bbox = { x: el.x, y: el.y, w: el.w, h: el.h };
+            break;
+        }
+        case 'limitRow': {
+            // Colored indicator + label (left)
+            drawRect(el.x, el.y + 4, 3, 8, el.color);
+            drawText(el.x + 6, el.y, el.label, 'sm', el.color, 'TL');
+
+            // Reset time (right-aligned)
+            drawText(el.x + el.w, el.y, el.reset, 'sm', 'CLR_TEXT_DIM', 'TR');
+
+            // Segmented progress bar (LCARS style)
+            const lBarY = el.y + H_SM;
+            const lBarH = 6;
+            const lSegW = 4;
+            const lGap = 1;
+            const lPct = (el.pct || 0) / 100;
+            const lBarEnd = el.x + el.w;
+
+            let lnSegs = 0;
+            for (let tx = el.x; tx + lSegW <= lBarEnd; tx += lSegW + lGap) lnSegs++;
+            const lFilledSegs = Math.round(lnSegs * lPct);
+
+            let lsx = el.x;
+            let lseg = 0;
+            while (lsx + lSegW <= lBarEnd) {
+                const sc = (lseg < lFilledSegs) ? el.color : 'CLR_BAR_BG';
+                drawRect(lsx, lBarY, lSegW, lBarH, sc);
+                lsx += lSegW + lGap;
+                lseg++;
+            }
+
+            bbox = { x: el.x, y: el.y, w: el.w, h: H_SM + lBarH };
+            break;
+        }
+        case 'donutGauge': {
+            const cx = el.x, cy = el.y;
+            const r = el.r || 38;
+            const thk = el.thickness || 7;
+            const pct = Math.min((el.pct || 0) / 100, 1);
+            const fg = clr(el.color);
+            const bg = clr('CLR_BAR_BG');
+
+            // Background ring
+            ctx.beginPath();
+            ctx.arc(cx * zoom, cy * zoom, r * zoom, 0, Math.PI * 2);
+            ctx.arc(cx * zoom, cy * zoom, (r - thk) * zoom, 0, Math.PI * 2, true);
+            ctx.fillStyle = bg;
+            ctx.fill();
+
+            // Filled arc (start from top, clockwise)
+            if (pct > 0.01) {
+                const startA = -Math.PI / 2;
+                const endA = startA + pct * Math.PI * 2;
+                ctx.beginPath();
+                ctx.arc(cx * zoom, cy * zoom, r * zoom, startA, endA);
+                ctx.arc(cx * zoom, cy * zoom, (r - thk) * zoom, endA, startA, true);
+                ctx.closePath();
+                ctx.fillStyle = fg;
+                ctx.fill();
+            }
+
+            // Percentage text centered
+            const pctTxt = `${el.pct}%`;
+            setFont(el.pctFont || 'md');
+            ctx.fillStyle = clr(el.pctColor || 'CLR_TEXT_BRIGHT');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(pctTxt, cx * zoom, (cy - 1) * zoom);
+
+            bbox = { x: cx - r, y: cy - r, w: r * 2, h: r * 2 };
+            break;
+        }
+        case 'progressBar': {
+            const pbx = el.x, pby = el.y;
+            const pbw = el.w || 100, pbh = el.h || 5;
+            const pbPct = Math.max(0, Math.min(1, (el.pct || 0) / 100));
+            const pbBg = clr('CLR_BAR_BG');
+            const pbFg = clr(el.color);
+
+            // Track background
+            drawRect(pbx, pby, pbw, pbh, 'CLR_BAR_BG');
+
+            // Filled portion
+            const fillW = Math.round(pbw * pbPct);
+            if (fillW > 0) {
+                ctx.fillStyle = pbFg;
+                ctx.fillRect(pbx * zoom, pby * zoom, fillW * zoom, pbh * zoom);
+            }
+
+            bbox = { x: pbx, y: pby, w: pbw, h: pbh };
+            break;
+        }
+        case 'dataCascade': {
+            const dcx = el.x, dcy = el.y;
+            const dcw = el.w || 100, dch = el.h || 40;
+            const dcColor = clr(el.color);
+
+            // Draw random small blocks to simulate data cascade
+            const blockH = 3, blockGap = 2;
+            const cols = 4;
+            const colW = Math.floor(dcw / cols);
+            for (let row = 0; row * (blockH + blockGap) < dch; row++) {
+                for (let col = 0; col < cols; col++) {
+                    // Pseudo-random fill based on position
+                    if ((row * 7 + col * 13 + 5) % 3 !== 0) {
+                        const bw = Math.floor(colW * (0.4 + ((row * 3 + col * 7) % 5) / 8));
+                        const bx = dcx + col * colW;
+                        const by = dcy + row * (blockH + blockGap);
+                        // Vary opacity
+                        const alpha = 0.3 + ((row + col) % 3) * 0.25;
+                        ctx.fillStyle = dcColor;
+                        ctx.globalAlpha = alpha;
+                        ctx.fillRect(bx * zoom, by * zoom, bw * zoom, blockH * zoom);
+                        ctx.globalAlpha = 1.0;
+                    }
+                }
+            }
+
+            bbox = { x: dcx, y: dcy, w: dcw, h: dch };
+            break;
+        }
+        case 'countdownBar': {
+            const bx = el.x, by = el.y;
+            const bw = el.w || 6, bh = el.h || 60;
+            const pct = Math.max(0, Math.min(1, (el.pct || 0)));
+            const bg = clr('CLR_BAR_BG');
+            const fg = clr(el.color);
+
+            // Background
+            ctx.fillStyle = bg;
+            ctx.fillRect(bx * zoom, by * zoom, bw * zoom, bh * zoom);
+
+            // Filled portion from bottom
+            const fillH = bh * pct;
+            if (fillH > 0) {
+                ctx.fillStyle = fg;
+                ctx.fillRect(bx * zoom, (by + bh - fillH) * zoom, bw * zoom, fillH * zoom);
+            }
+
+            bbox = { x: bx, y: by, w: bw, h: bh };
+            break;
+        }
+    }
+
+    if (useScale && bbox) {
+        ctx.restore();
+        // Adjust bbox to account for scale
+        bbox = {
+            x: el.x + (bbox.x - el.x) * s,
+            y: el.y + (bbox.y - el.y) * s,
+            w: bbox.w * s,
+            h: bbox.h * s
+        };
+    } else if (useScale) {
+        ctx.restore();
+    }
+
+    el._bbox = bbox;
+    return bbox;
+}
+
+// ============================================================
+// Full Render
+// ============================================================
+function render() {
+    resizeCanvas();
+    // Clear
+    ctx.fillStyle = clr('CLR_BG');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Frame (title is rendered as an element)
+    // v2 Setup screen is frameless (wantsFrame=false)
+    const isFrameless = activeFirmware === 'v2' && SCREEN_NAMES[currentScreen] === 'Setup';
+    if (!isFrameless) {
+        drawLcarsFrame(currentScreen, SCREEN_NAMES.length, sampleData.countdown);
+    }
+
+    // Elements
+    const elements = getAllElements(currentScreen) || [];
+    elements.forEach((el, idx) => {
+        renderElement(el);
+    });
+
+    // Grid overlay
+    if (showGrid) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx <= SCR_W; gx += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(gx * zoom + 0.5, 0);
+            ctx.lineTo(gx * zoom + 0.5, SCR_H * zoom);
+            ctx.stroke();
+        }
+        for (let gy = 0; gy <= SCR_H; gy += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, gy * zoom + 0.5);
+            ctx.lineTo(SCR_W * zoom, gy * zoom + 0.5);
+            ctx.stroke();
+        }
+    }
+
+    // Crosshair ruler
+    const lblX = document.getElementById('crossLabelX');
+    const lblY = document.getElementById('crossLabelY');
+    if (showCrosshair && mouseLogicalX >= 0 && mouseLogicalY >= 0) {
+        const cx = mouseLogicalX * zoom + 0.5;
+        const cy = mouseLogicalY * zoom + 0.5;
+        ctx.strokeStyle = 'rgba(255, 153, 0, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(cx, 0);
+        ctx.lineTo(cx, SCR_H * zoom);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, cy);
+        ctx.lineTo(SCR_W * zoom, cy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // Position labels outside canvas
+        lblX.style.display = 'block';
+        lblX.style.left = cx + 'px';
+        lblX.textContent = mouseLogicalX;
+        lblY.style.display = 'block';
+        lblY.style.top = cy + 'px';
+        lblY.textContent = mouseLogicalY;
+    } else {
+        lblX.style.display = 'none';
+        lblY.style.display = 'none';
+    }
+
+    // Selection highlight + resize handles
+    if (selectedIdx >= 0 && selectedIdx < elements.length) {
+        const el = elements[selectedIdx];
+        if (el._bbox) {
+            const b = el._bbox;
+            ctx.strokeStyle = '#FF9900';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(
+                b.x * zoom - 2, b.y * zoom - 2,
+                b.w * zoom + 4, b.h * zoom + 4
+            );
+            ctx.setLineDash([]);
+
+            // Draw resize handles
+            const hs = Math.max(6, 6 * Math.min(zoom, 2)); // handle size in screen px
+            ctx.fillStyle = '#FF9900';
+            if (el.type === 'vline') {
+                // Top and bottom edge handles
+                const cx = (el.x + (el.thickness || 2) / 2) * zoom;
+                ctx.fillRect(cx - hs/2, el.y * zoom - hs, hs, hs);
+                ctx.fillRect(cx - hs/2, (el.y + el.h) * zoom, hs, hs);
+            } else if (el.type === 'hline') {
+                // Left and right edge handles
+                const cy = (el.y + (el.thickness || 1) / 2) * zoom;
+                ctx.fillRect(el.x * zoom - hs, cy - hs/2, hs, hs);
+                ctx.fillRect((el.x + el.w) * zoom, cy - hs/2, hs, hs);
+            } else {
+                // Bottom-right corner handle on all elements
+                ctx.fillRect((b.x + b.w) * zoom, (b.y + b.h) * zoom, hs, hs);
+            }
+        }
+    }
+}
+
+// ============================================================
+// Hit Testing
+// ============================================================
+function hitTest(logicalX, logicalY) {
+    const elements = getAllElements(currentScreen) || [];
+    // Test in reverse order (top elements first)
+    for (let i = elements.length - 1; i >= 0; i--) {
+        const el = elements[i];
+        const b = el._bbox;
+        if (!b) continue;
+        if (logicalX >= b.x && logicalX <= b.x + b.w &&
+            logicalY >= b.y && logicalY <= b.y + b.h) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function canvasToLogical(canvasX, canvasY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: Math.floor((canvasX - rect.left) / zoom),
+        y: Math.floor((canvasY - rect.top) / zoom)
+    };
+}
+
+// ============================================================
+// Mouse Interaction
+// ============================================================
+// Resize handle hit-test: returns { handle, axis } or null
+function hitTestHandle(pos) {
+    if (selectedIdx < 0) return null;
+    const el = getAllElements(currentScreen)[selectedIdx];
+    if (!el) return null;
+    const hs = Math.max(6, 6 * Math.min(zoom, 2)) / zoom + 2; // handle radius in logical px
+
+    if (el.type === 'vline') {
+        const cx = el.x + (el.thickness || 2) / 2;
+        // Top handle
+        if (Math.abs(pos.x - cx) < hs && Math.abs(pos.y - el.y) < hs)
+            return { handle: 'start', axis: 'y' };
+        // Bottom handle
+        if (Math.abs(pos.x - cx) < hs && Math.abs(pos.y - (el.y + el.h)) < hs)
+            return { handle: 'end', axis: 'y' };
+    } else if (el.type === 'hline') {
+        const cy = el.y + (el.thickness || 1) / 2;
+        // Left handle
+        if (Math.abs(pos.x - el.x) < hs && Math.abs(pos.y - cy) < hs)
+            return { handle: 'start', axis: 'x' };
+        // Right handle
+        if (Math.abs(pos.x - (el.x + el.w)) < hs && Math.abs(pos.y - cy) < hs)
+            return { handle: 'end', axis: 'x' };
+    } else {
+        // Bottom-right corner handle on all elements
+        const b = el._bbox;
+        if (!b) return null;
+        if (Math.abs(pos.x - (b.x + b.w)) < hs && Math.abs(pos.y - (b.y + b.h)) < hs)
+            return { handle: 'end', axis: 'both', bbox: b };
+    }
+    return null;
+}
+
+canvas.addEventListener('mousemove', (e) => {
+    const pos = canvasToLogical(e.clientX, e.clientY);
+    mouseLogicalX = pos.x;
+    mouseLogicalY = pos.y;
+    document.getElementById('coordStatus').textContent = `x: ${pos.x}  y: ${pos.y}`;
+
+    // Handle resize dragging
+    if (resizing && selectedIdx >= 0) {
+        const el = getAllElements(currentScreen)[selectedIdx];
+        let v = resizing.axis === 'x' ? pos.x : pos.y;
+        if (snapToGrid) v = Math.round(v / gridSize) * gridSize;
+
+        if (resizing.handle === 'start') {
+            if (resizing.axis === 'y' && el.type === 'vline') {
+                const bottom = el.y + el.h;
+                el.y = Math.min(v, bottom - 4);
+                el.h = bottom - el.y;
+            } else if (resizing.axis === 'x' && el.type === 'hline') {
+                const right = el.x + el.w;
+                el.x = Math.min(v, right - 4);
+                el.w = right - el.x;
+            }
+        } else { // 'end'
+            if (el.type === 'vline') {
+                let vy = pos.y;
+                if (snapToGrid) vy = Math.round(vy / gridSize) * gridSize;
+                el.h = Math.max(4, vy - el.y);
+            } else if (el.type === 'hline') {
+                let vx = pos.x;
+                if (snapToGrid) vx = Math.round(vx / gridSize) * gridSize;
+                el.w = Math.max(4, vx - el.x);
+            } else if (resizing.axis === 'both' && resizing.bbox) {
+                // Generic corner resize: compute new bbox size from drag position
+                let vx = pos.x, vy = pos.y;
+                if (snapToGrid) { vx = Math.round(vx / gridSize) * gridSize; vy = Math.round(vy / gridSize) * gridSize; }
+                const origB = resizing.bbox;
+                const newBW = Math.max(4, vx - origB.x);
+                const newBH = Math.max(4, vy - origB.y);
+
+                if (el.type === 'donutGauge' && el.r !== undefined) {
+                    // DonutGauge: resize radius from bbox corner drag
+                    el.r = Math.max(4, Math.round(Math.min(newBW, newBH) / 2));
+                } else if (el.w !== undefined || el.h !== undefined) {
+                    // Elements with explicit w/h (el.x is the left edge for these)
+                    if (el.w !== undefined) el.w = Math.max(4, vx - el.x);
+                    if (el.h !== undefined) el.h = Math.max(4, vy - el.y);
+                } else if (origB.w > 0 && origB.h > 0) {
+                    // Elements without w/h/r: compute scale from bbox drag
+                    const sx = Math.max(0.25, newBW / origB.w);
+                    const sy = Math.max(0.25, newBH / origB.h);
+                    el.scale = Math.round(Math.max(sx, sy) * 4) / 4; // snap to 0.25
+                }
+            }
+        }
+        render();
+        updatePropsPanel();
+    } else if (dragging && selectedIdx >= 0) {
+        const el = getAllElements(currentScreen)[selectedIdx];
+        let nx = pos.x - dragOffsetX;
+        let ny = pos.y - dragOffsetY;
+        if (snapToGrid) {
+            nx = Math.round(nx / gridSize) * gridSize;
+            ny = Math.round(ny / gridSize) * gridSize;
+        }
+        el.x = nx;
+        el.y = ny;
+        render();
+        updatePropsPanel();
+    } else {
+        // Show resize cursor when hovering over handles
+        const hoverHandle = hitTestHandle(pos);
+        if (hoverHandle) {
+            canvas.style.cursor = hoverHandle.axis === 'x' ? 'ew-resize' :
+                                  hoverHandle.axis === 'y' ? 'ns-resize' : 'nwse-resize';
+        } else {
+            canvas.style.cursor = 'default';
+        }
+        if (showCrosshair) render();
+    }
+});
+
+canvas.addEventListener('mousedown', (e) => {
+    const pos = canvasToLogical(e.clientX, e.clientY);
+
+    // Check if clicking a resize handle on the currently selected element
+    const handleHit = hitTestHandle(pos);
+    if (handleHit) {
+        pushUndo();
+        resizing = handleHit;
+        canvas.style.cursor = handleHit.axis === 'x' ? 'ew-resize' :
+                              handleHit.axis === 'y' ? 'ns-resize' : 'nwse-resize';
+        return;
+    }
+
+    const hit = hitTest(pos.x, pos.y);
+    selectedIdx = hit;
+    activeColorProp = 'color';
+    updatePropsPanel();
+    render();
+
+    if (hit >= 0) {
+        pushUndo();
+        const el = getAllElements(currentScreen)[hit];
+        dragOffsetX = pos.x - el.x;
+        dragOffsetY = pos.y - el.y;
+        dragging = true;
+        canvas.style.cursor = 'grabbing';
+    } else {
+        // No element hit — start panning
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        scrollStartX = canvasArea.scrollLeft;
+        scrollStartY = canvasArea.scrollTop;
+        canvasArea.classList.add('panning');
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    dragging = false;
+    resizing = null;
+    if (isPanning) { isPanning = false; canvasArea.classList.remove('panning'); }
+    canvas.style.cursor = 'default';
+});
+
+canvas.addEventListener('mouseleave', () => {
+    dragging = false;
+    resizing = null;
+    if (isPanning) { isPanning = false; canvasArea.classList.remove('panning'); }
+    mouseLogicalX = -1;
+    mouseLogicalY = -1;
+    canvas.style.cursor = 'default';
+    if (showCrosshair) render();
+});
+
+// Toolbox drag-and-drop onto canvas
+canvas.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    try {
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const item = TOOLBOX_GROUPS[data.gi].items[data.ii];
+        const pos = canvasToLogical(e.clientX, e.clientY);
+        let x = pos.x, y = pos.y;
+        if (snapToGrid) {
+            x = Math.round(x / gridSize) * gridSize;
+            y = Math.round(y / gridSize) * gridSize;
+        }
+        pushUndo();
+        const newEl = item.create(x, y);
+        newEl.id = generateId(newEl.type);
+        customElements[currentScreen].push(newEl);
+        const allEls = getAllElements(currentScreen);
+        selectedIdx = allEls.length - 1;
+        render();
+        updatePropsPanel();
+    } catch (err) {
+        // Ignore non-toolbox drops
+    }
+});
+
+// Zoom helpers
+const canvasArea = document.querySelector('.canvas-area');
+
+function syncZoomUI() {
+    document.getElementById('zoomSlider').value = zoom;
+    document.getElementById('zoomLabel').textContent = zoom + 'x';
+    document.getElementById('zoomSelect').value = String(zoom);
+}
+
+function setZoomFromSlider(val) {
+    zoom = Math.round(val);
+    syncZoomUI();
+    resizeCanvas();
+    render();
+}
+
+function zoomStep(delta) {
+    zoom = Math.max(1, Math.min(6, Math.round(zoom + delta)));
+    syncZoomUI();
+    resizeCanvas();
+    render();
+}
+
+// Ctrl+wheel zoom (integer steps only)
+canvasArea.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const oldZoom = zoom;
+    if (e.deltaY < 0) zoom = Math.min(zoom + 1, 6);
+    else zoom = Math.max(zoom - 1, 1);
+    if (zoom === oldZoom) return;
+    syncZoomUI();
+    const rect = canvasArea.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left + canvasArea.scrollLeft;
+    const mouseY = e.clientY - rect.top + canvasArea.scrollTop;
+    const ratio = zoom / oldZoom;
+    resizeCanvas();
+    render();
+    canvasArea.scrollLeft = mouseX * ratio - (e.clientX - rect.left);
+    canvasArea.scrollTop = mouseY * ratio - (e.clientY - rect.top);
+}, { passive: false });
+
+// Middle-mouse or click on background to pan
+let isPanning = false;
+let panStartX = 0, panStartY = 0;
+let scrollStartX = 0, scrollStartY = 0;
+
+canvasArea.addEventListener('mousedown', (e) => {
+    // Middle button, or left-click outside canvas
+    if (e.button === 1 || (e.button === 0 && e.target === canvasArea)) {
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        scrollStartX = canvasArea.scrollLeft;
+        scrollStartY = canvasArea.scrollTop;
+        canvasArea.classList.add('panning');
+        e.preventDefault();
+    }
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    canvasArea.scrollLeft = scrollStartX - (e.clientX - panStartX);
+    canvasArea.scrollTop = scrollStartY - (e.clientY - panStartY);
+});
+
+window.addEventListener('mouseup', (e) => {
+    if (isPanning) {
+        isPanning = false;
+        canvasArea.classList.remove('panning');
+    }
+});
+
+// ============================================================
+// Properties Panel
+// ============================================================
+function updatePropsPanel() {
+    const container = document.getElementById('propsContent');
+    const elements = getAllElements(currentScreen) || [];
+
+    if (selectedIdx < 0 || selectedIdx >= elements.length) {
+        container.innerHTML = '<div class="no-selection">Click an element on the canvas to select it</div>';
+        highlightPaletteSwatch(null);
+        return;
+    }
+
+    const el = elements[selectedIdx];
+    let html = '<div class="prop-grid">';
+    html += `<label>Type</label><input value="${el.type}" readonly style="color:#8b949e">`;
+    html += `<label>ID</label><input value="${el.id || ''}" readonly style="color:#8b949e">`;
+    html += `<label>X</label><input type="number" id="propX" value="${el.x}" onchange="setProp('x', +this.value)">`;
+    html += `<label>Y</label><input type="number" id="propY" value="${el.y}" onchange="setProp('y', +this.value)">`;
+
+    if (el.w !== undefined) {
+        html += `<label>Width</label><input type="number" id="propW" value="${el.w}" onchange="setProp('w', +this.value)">`;
+    }
+    if (el.h !== undefined) {
+        html += `<label>Height</label><input type="number" id="propH" value="${el.h}" onchange="setProp('h', +this.value)">`;
+    }
+    if (el.text !== undefined) {
+        html += `<label>Text</label><input id="propText" value="${escHtml(el.text)}" onchange="setProp('text', this.value)">`;
+    }
+    if (el.font !== undefined) {
+        html += `<label>Font</label><select id="propFont" onchange="setProp('font', this.value)">`;
+        for (const f of Object.keys(FONTS)) {
+            html += `<option value="${f}" ${el.font === f ? 'selected' : ''}>${f} (${FONTS[f]}px)</option>`;
+        }
+        html += '</select>';
+    }
+    if (el.datum !== undefined) {
+        html += `<label>Datum</label><select id="propDatum" onchange="setProp('datum', this.value)">`;
+        for (const d of ['TL', 'TC', 'TR', 'MC', 'ML']) {
+            html += `<option value="${d}" ${el.datum === d ? 'selected' : ''}>${d}</option>`;
+        }
+        html += '</select>';
+    }
+    if (el.type === 'vline' || el.type === 'hline') {
+        const defThk = el.type === 'vline' ? 2 : 1;
+        const thk = el.thickness || defThk;
+        html += `<label>Thickness</label><input type="number" min="1" max="20" value="${thk}" onchange="setProp('thickness', +this.value)">`;
+    }
+    if (el.type !== 'vline' && el.type !== 'hline') {
+        const sc = el.scale || 1;
+        html += `<label>Scale</label><input type="number" min="0.25" max="4" step="0.25" value="${sc}" onchange="setProp('scale', +this.value)">`;
+    }
+    if (el.color !== undefined) {
+        const cBorder = activeColorProp === 'color' ? 'border:1px solid #58a6ff' : '';
+        html += `<label>Color</label><input value="${el.color}" readonly onclick="activeColorProp='color';highlightPaletteSwatch(this.value);updatePropsPanel()" style="color:${clr(el.color)}; font-weight:bold; cursor:pointer; ${cBorder}">`;
+    }
+    if (el.value !== undefined && el.type === 'cost') {
+        html += `<label>Value</label><input type="number" step="0.01" value="${el.value}" onchange="setProp('value', +this.value)">`;
+    }
+    if (el.type === 'donutGauge') {
+        const pf = el.pctFont || 'md';
+        html += `<label>Pct Font</label><select onchange="setProp('pctFont', this.value)">`;
+        for (const f of Object.keys(FONTS)) {
+            html += `<option value="${f}" ${pf === f ? 'selected' : ''}>${f} (${FONTS[f]}px)</option>`;
+        }
+        html += '</select>';
+        const pcVal = el.pctColor || 'CLR_TEXT_BRIGHT';
+        const pBorder = activeColorProp === 'pctColor' ? 'border:1px solid #58a6ff' : '';
+        html += `<label>Pct Color</label><input value="${pcVal}" readonly onclick="activeColorProp='pctColor';highlightPaletteSwatch(this.value);updatePropsPanel()" style="color:${clr(pcVal)}; font-weight:bold; cursor:pointer; ${pBorder}">`;
+    }
+
+    html += '</div>';
+
+    // Reset to default button (for all generated elements)
+    html += '<div style="margin-top:10px;padding:8px;background:#1a1a2e;border:1px solid #30363d;border-radius:4px;">';
+    if (el.id && !el.id.startsWith('custom_')) {
+        html += '<button class="btn btn-primary" style="width:100%;padding:6px 0;font-size:12px;" onclick="resetElementToDefault()">Reset to Default</button>';
+    } else {
+        html += '<span style="color:#484f58;font-size:11px;">Custom element (no reset)</span>';
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    const highlightColor = (activeColorProp === 'pctColor' && el.type === 'donutGauge')
+        ? (el.pctColor || 'CLR_TEXT_BRIGHT') : el.color;
+    highlightPaletteSwatch(highlightColor);
+}
+
+function setProp(key, value) {
+    if (selectedIdx < 0) return;
+    pushUndo();
+    const el = getAllElements(currentScreen)[selectedIdx];
+    el[key] = value;
+    render();
+}
+
+function resetElementToDefault() {
+    if (selectedIdx < 0) return;
+    const el = getAllElements(currentScreen)[selectedIdx];
+    if (!el.id || el.id.startsWith('custom_')) return;
+
+    pushUndo();
+
+    // Rebuild default elements and find the matching one by ID
+    const defaults = buildScreenElements();
+    const defaultEls = defaults[currentScreen] || [];
+    const def = defaultEls.find(d => d.id === el.id);
+    if (!def) return;
+
+    // Copy all default properties back
+    for (const key of Object.keys(def)) {
+        el[key] = def[key];
+    }
+    // Remove any extra properties that aren't in the default
+    for (const key of Object.keys(el)) {
+        if (!(key in def)) delete el[key];
+    }
+
+    // Also remove from deletedElementIds if it was there (per-screen key)
+    deletedElementIds.delete(`${currentScreen}:${el.id}`);
+
+    render();
+    updatePropsPanel();
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// ============================================================
+// Color Palette
+// ============================================================
+function buildColorPalette() {
+    const container = document.getElementById('colorPalette');
+    container.innerHTML = '';
+    const colorEntries = Object.entries(COLORS).filter(([k]) => k !== 'CLR_BG' && k !== 'CLR_BAR_BG');
+
+    colorEntries.forEach(([name, hex]) => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.dataset.colorName = name;
+        swatch.style.backgroundColor = hex;
+        swatch.title = name.replace('CLR_', '');
+        swatch.addEventListener('click', () => applyColor(name));
+        container.appendChild(swatch);
+    });
+}
+
+let activeColorProp = 'color';  // which color property the palette targets
+
+function applyColor(colorName) {
+    if (selectedIdx < 0) return;
+    const el = getAllElements(currentScreen)[selectedIdx];
+    if (activeColorProp === 'pctColor' && el.type === 'donutGauge') {
+        pushUndo();
+        el.pctColor = colorName;
+        render();
+        updatePropsPanel();
+    } else if (el.color !== undefined) {
+        pushUndo();
+        el.color = colorName;
+        render();
+        updatePropsPanel();
+    }
+}
+
+function highlightPaletteSwatch(colorName) {
+    document.querySelectorAll('.color-swatch').forEach(s => {
+        s.classList.toggle('active', s.dataset.colorName === colorName);
+    });
+}
+
+// ============================================================
+// Sample Data Panel
+// ============================================================
+function toggleSampleData() {
+    const panel = document.getElementById('dataPanel');
+    const arrow = document.getElementById('sampleDataArrow');
+    const open = panel.style.display === 'none';
+    panel.style.display = open ? '' : 'none';
+    arrow.style.transform = open ? 'rotate(90deg)' : '';
+}
+
+function buildDataPanel() {
+    const container = document.getElementById('dataPanel');
+    const fields = [
+        ['todayCost', "Today Cost ($)", 'number', '0.01'],
+        ['monthCost', "Month Cost ($)", 'number', '0.01'],
+        ['inputTokens', "Input Tokens", 'number', '1000'],
+        ['outputTokens', "Output Tokens", 'number', '1000'],
+        ['cachedTokens', "Cached Tokens", 'number', '1000'],
+        ['writeTokens', "Write Tokens", 'number', '1000'],
+        ['sessions', "Sessions", 'number', '1'],
+        ['linesAdded', "Lines Added", 'number', '1'],
+        ['linesRemoved', "Lines Removed", 'number', '1'],
+        ['commits', "Commits", 'number', '1'],
+        ['pullReqs', "Pull Reqs", 'number', '1'],
+        ['estCost', "Est. Cost ($)", 'number', '0.01'],
+        ['countdown', "Countdown (s)", 'number', '1'],
+    ];
+
+    let html = '';
+    fields.forEach(([key, label, type, step]) => {
+        html += `<label>${label}</label>`;
+        html += `<input type="${type}" step="${step || '1'}" value="${sampleData[key]}" `;
+        html += `onchange="updateSampleData('${key}', +this.value)">`;
+    });
+    container.innerHTML = html;
+}
+
+function updateSampleData(key, value) {
+    sampleData[key] = value;
+    rebuildScreens(true);
+    render();
+}
+
+// ============================================================
+// Tabs
+// ============================================================
+let tabDragIdx = -1;
+
+function buildTabs() {
+    const container = document.getElementById('tabs');
+    container.innerHTML = '';
+    SCREEN_NAMES.forEach((name, i) => {
+        const tab = document.createElement('div');
+        tab.className = 'tab' + (i === currentScreen ? ' active' : '');
+        tab.draggable = true;
+
+        // Tab label
+        const label = document.createElement('span');
+        label.textContent = name;
+        tab.appendChild(label);
+
+        // Close button (don't show if only 1 screen)
+        if (SCREEN_NAMES.length > 1) {
+            const close = document.createElement('span');
+            close.className = 'tab-close';
+            close.textContent = '\u00D7';
+            close.title = 'Delete page';
+            close.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteScreen(i);
+            });
+            tab.appendChild(close);
+        }
+
+        // Click to switch
+        tab.addEventListener('click', () => {
+            currentScreen = i;
+            selectedIdx = -1;
+            render();
+            buildTabs();
+            updatePropsPanel();
+        });
+
+        // Drag to reorder
+        tab.addEventListener('dragstart', (e) => {
+            tabDragIdx = i;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', 'tab');
+            tab.style.opacity = '0.5';
+        });
+        tab.addEventListener('dragend', () => { tab.style.opacity = ''; });
+        tab.addEventListener('dragover', (e) => {
+            if (tabDragIdx < 0) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            tab.classList.add('drag-over');
+        });
+        tab.addEventListener('dragleave', () => { tab.classList.remove('drag-over'); });
+        tab.addEventListener('drop', (e) => {
+            e.preventDefault();
+            tab.classList.remove('drag-over');
+            if (tabDragIdx < 0 || tabDragIdx === i) { tabDragIdx = -1; return; }
+            moveScreen(tabDragIdx, i);
+            tabDragIdx = -1;
+        });
+
+        container.appendChild(tab);
+    });
+
+    // "+" add button
+    const addBtn = document.createElement('div');
+    addBtn.className = 'tab-add';
+    addBtn.textContent = '+';
+    addBtn.title = 'Add blank page';
+    addBtn.addEventListener('click', addBlankScreen);
+    container.appendChild(addBtn);
+}
+
+function moveScreen(from, to) {
+    pushUndo();
+    const move = (arr, f, t) => { const item = arr.splice(f, 1)[0]; arr.splice(t, 0, item); };
+    move(SCREEN_NAMES, from, to);
+    move(SCREEN_TITLES, from, to);
+    move(screenElements, from, to);
+    move(customElements, from, to);
+
+    // Adjust currentScreen to follow the moved tab
+    if (currentScreen === from) currentScreen = to;
+    else if (from < currentScreen && to >= currentScreen) currentScreen--;
+    else if (from > currentScreen && to <= currentScreen) currentScreen++;
+
+    selectedIdx = -1;
+    render();
+    buildTabs();
+    updatePropsPanel();
+}
+
+function addBlankScreen() {
+    pushUndo();
+    const name = 'Page ' + (SCREEN_NAMES.length + 1);
+    const title = 'NEW PAGE';
+    SCREEN_NAMES.push(name);
+    SCREEN_TITLES.push(title);
+    // Build frame-only screen
+    const frame = buildFrameElements();
+    screenElements.push([makeScreenTitle(title, SCREEN_NAMES.length - 1), ...frame.map(e => ({...e}))]);
+    customElements.push([]);
+
+    currentScreen = SCREEN_NAMES.length - 1;
+    selectedIdx = -1;
+    render();
+    buildTabs();
+    updatePropsPanel();
+}
+
+function deleteScreen(idx) {
+    if (SCREEN_NAMES.length <= 1) return;
+    if (!confirm(`Delete page "${SCREEN_NAMES[idx]}"?`)) return;
+
+    pushUndo();
+    SCREEN_NAMES.splice(idx, 1);
+    SCREEN_TITLES.splice(idx, 1);
+    screenElements.splice(idx, 1);
+    customElements.splice(idx, 1);
+
+    if (currentScreen >= SCREEN_NAMES.length) currentScreen = SCREEN_NAMES.length - 1;
+    else if (currentScreen > idx) currentScreen--;
+    else if (currentScreen === idx) currentScreen = Math.min(idx, SCREEN_NAMES.length - 1);
+
+    selectedIdx = -1;
+    render();
+    buildTabs();
+    updatePropsPanel();
+}
+
+// ============================================================
+// Board & Zoom
+// ============================================================
+const DEVICE_HELP = {
+    tdisplay: {
+        name: 'LILYGO T-Display-S3',
+        upload: [
+            'Connect via USB-C',
+            'First flash: hold <b>BOOT</b> (GPIO 0) + tap <b>RESET</b>, then release BOOT',
+            'After first flash, auto-enters download mode (no buttons needed)',
+        ],
+        serial: [
+            'USB-CDC serial — same USB-C cable used for upload',
+            'Baud: <b>115200</b>',
+            'Buttons: <b>BOOT</b> (GPIO 0) = Prev, <b>GPIO 14</b> = Next',
+        ],
+        pins: 'Backlight: GPIO 38 | Touch: SDA 18, SCL 17, INT 16'
+    },
+    waveshare: {
+        name: 'Waveshare ESP32-S3-LCD-1.47',
+        upload: [
+            'Connect via USB-C',
+            'First flash: hold <b>BOOT</b> + tap <b>RESET</b>, then release BOOT',
+            'After first flash, auto-enters download mode',
+        ],
+        serial: [
+            'USB-CDC serial — same USB-C cable used for upload',
+            'Baud: <b>115200</b>',
+            'Single button: <b>BOOT</b> (GPIO 0) — double-tap = next screen',
+            'Has touch input for navigation',
+        ],
+        pins: 'Backlight: GPIO 48 | RGB LED: GPIO 38'
+    }
+};
+
+function updateDeviceHelp() {
+    const board = document.getElementById('boardSelect').value;
+    const help = DEVICE_HELP[board];
+    const el = document.getElementById('deviceHelp');
+    if (!help) { el.style.display = 'none'; return; }
+
+    el.style.display = 'block';
+    el.innerHTML = `<div style="color:#FF9900; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">${help.name}</div>`
+        + `<div style="margin-bottom:4px;"><span style="color:#8b949e;">Upload:</span><br>`
+        + help.upload.map(s => `&nbsp;&bull; ${s}`).join('<br>') + `</div>`
+        + `<div style="margin-bottom:4px;"><span style="color:#8b949e;">Serial:</span><br>`
+        + help.serial.map(s => `&nbsp;&bull; ${s}`).join('<br>') + `</div>`
+        + `<div style="color:#484f58;">${help.pins}</div>`;
+}
+
+// Show help for initial board
+updateDeviceHelp();
+
+document.getElementById('boardSelect').addEventListener('change', (e) => {
+    const board = BOARDS[e.target.value];
+    SCR_W = board.w;
+    SCR_H = board.h;
+    recalcLayout();
+    selectedIdx = -1;
+    rebuildScreens(true);
+    render();
+    updatePropsPanel();
+    updateDeviceHelp();
+});
+
+document.getElementById('firmwareSelect').addEventListener('change', (e) => {
+    switchFirmware(e.target.value);
+});
+
+function switchFirmware(fw) {
+    activeFirmware = fw;
+    const fwDef = FW_SCREENS[fw];
+    SCREEN_NAMES = [...fwDef.names];
+    SCREEN_TITLES = [...fwDef.titles];
+    SCREEN_BUILDERS = fwDef.builders;
+    TITLE_X = SIDEBAR_W + ELBOW_R + (fw === 'v2' ? 4 : 4);
+    currentScreen = 0;
+    selectedIdx = -1;
+    customElements = SCREEN_NAMES.map(() => []);
+    deletedElementIds = new Set();
+    recalcLayout();
+    rebuildScreens(false);
+    buildTabs();
+    render();
+    updatePropsPanel();
+    // Show/hide export header button
+    const exportBtn = document.getElementById('btnExport');
+    if (exportBtn) exportBtn.style.display = fw === 'v2' ? 'none' : '';
+    // Try to load saved layout for this firmware version
+    loadSavedLayout();
+}
+
+document.getElementById('zoomSelect').addEventListener('change', (e) => {
+    zoom = parseFloat(e.target.value);
+    syncZoomUI();
+    resizeCanvas();
+    render();
+});
+
+// ============================================================
+// Export
+// ============================================================
+function exportCoordinates() {
+    const elements = getAllElements(currentScreen) || [];
+    let lines = [];
+    lines.push(`// Screen: ${SCREEN_NAMES[currentScreen]} (${SCREEN_TITLES[currentScreen]})`);
+    lines.push(`// Board: ${SCR_W}x${SCR_H}`);
+    lines.push('// ' + '='.repeat(60));
+    lines.push('');
+
+    elements.forEach(el => {
+        const parts = [`type: ${el.type}`, `x: ${el.x}`, `y: ${el.y}`];
+        if (el.w !== undefined) parts.push(`w: ${el.w}`);
+        if (el.h !== undefined) parts.push(`h: ${el.h}`);
+        if (el.text !== undefined) parts.push(`text: "${el.text}"`);
+        if (el.font !== undefined) parts.push(`font: ${el.font}`);
+        if (el.color !== undefined) parts.push(`color: ${el.color}`);
+        if (el.datum !== undefined) parts.push(`datum: ${el.datum}`);
+        if (el.label !== undefined) parts.push(`label: "${el.label}"`);
+        if (el.value !== undefined) parts.push(`value: ${typeof el.value === 'number' ? el.value : '"' + el.value + '"'}`);
+        lines.push(`{ ${parts.join(', ')} }  // ${el.id || ''}`);
+    });
+
+    document.getElementById('exportContent').textContent = lines.join('\n');
+    document.getElementById('exportModal').classList.add('visible');
+}
+
+function copyExport() {
+    const text = document.getElementById('exportContent').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy to Clipboard', 1500);
+    });
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').classList.remove('visible');
+}
+
+function resetPositions() {
+    selectedIdx = -1;
+    rebuildScreens();
+    render();
+    updatePropsPanel();
+}
+
+function resetCurrentPage() {
+    if (!confirm(`Reset all elements on "${SCREEN_TITLES[currentScreen]}" to defaults?`)) return;
+    pushUndo();
+    // Remove all per-screen deleted IDs for the current screen
+    for (const key of [...deletedElementIds]) {
+        if (key.startsWith(`${currentScreen}:`)) {
+            deletedElementIds.delete(key);
+        }
+    }
+    // Rebuild to restore all default elements
+    rebuildScreens();
+    // Clear custom elements for this screen
+    customElements[currentScreen] = [];
+    selectedIdx = -1;
+    render();
+    updatePropsPanel();
+}
+
+// ============================================================
+// Server Communication (Save / Build / Upload)
+// ============================================================
+function serializeElement(el) {
+    const out = { id: el.id, type: el.type, x: el.x, y: el.y };
+    if (el.w !== undefined) out.w = el.w;
+    if (el.h !== undefined) out.h = el.h;
+    if (el.font !== undefined) out.font = el.font;
+    if (el.color !== undefined) out.color = el.color;
+    if (el.text !== undefined) out.text = el.text;
+    if (el.datum !== undefined) out.datum = el.datum;
+    if (el.label !== undefined) out.label = el.label;
+    if (el.value !== undefined) out.value = el.value;
+    if (el.name !== undefined) out.name = el.name;
+    if (el.cost !== undefined) out.cost = el.cost;
+    if (el.maxCost !== undefined) out.maxCost = el.maxCost;
+    if (el.model !== undefined) out.model = el.model;
+    if (el.maxTotal !== undefined) out.maxTotal = el.maxTotal;
+    if (el.accepted !== undefined) out.accepted = el.accepted;
+    if (el.rejected !== undefined) out.rejected = el.rejected;
+    if (el.pct !== undefined) out.pct = el.pct;
+    if (el.reset !== undefined) out.reset = el.reset;
+    if (el.r !== undefined) out.r = el.r;
+    if (el.rssi !== undefined) out.rssi = el.rssi;
+    if (el.thickness !== undefined) out.thickness = el.thickness;
+    if (el.scale !== undefined && el.scale !== 1) out.scale = el.scale;
+    if (el.pctFont !== undefined) out.pctFont = el.pctFont;
+    if (el.pctColor !== undefined) out.pctColor = el.pctColor;
+    return out;
+}
+
+function buildLayoutsPayload() {
+    const fwKey = activeFirmware;  // 'v1' or 'v2'
+    const fwData = {
+        screens: screenElements.map((elements, i) => ({
+            name: SCREEN_NAMES[i],
+            title: SCREEN_TITLES[i],
+            elements: elements.map(serializeElement)
+        })),
+        customElements: customElements.map((elements, i) => ({
+            screen: i,
+            elements: elements.map(serializeElement)
+        })),
+        deletedElementIds: [...deletedElementIds]
+    };
+
+    // Try to load existing layouts to preserve the other firmware's data
+    const layouts = { ...(_lastLoadedLayouts || {}), version: 1, board: document.getElementById('boardSelect').value };
+    layouts[fwKey] = fwData;
+    // Backward compat: also write top-level screens for v1 so old server.py can read it
+    if (fwKey === 'v1') {
+        layouts.screens = fwData.screens;
+        layouts.customElements = fwData.customElements;
+        layouts.deletedElementIds = fwData.deletedElementIds;
+    }
+    return layouts;
+}
+
+// Cache of last loaded layouts (preserves the other firmware's data on save)
+let _lastLoadedLayouts = null;
+
+async function saveLayout() {
+    const btn = document.getElementById('btnSave');
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch('/api/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(buildLayoutsPayload())
+        });
+        btn.textContent = resp.ok ? 'Saved!' : 'Error!';
+    } catch (e) {
+        btn.textContent = 'Offline';
+    }
+    setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 1500);
+}
+
+// COM port management — populates both panel and serial overlay dropdowns
+async function fetchPorts() {
+    try {
+        const resp = await fetch('/api/serial-ports');
+        return (await resp.json()).ports || [];
+    } catch (e) {
+        console.log('COM port refresh failed:', e);
+        return [];
+    }
+}
+
+function populatePortSelect(sel, ports, placeholder) {
+    const saved = sel.value;
+    sel.innerHTML = `<option value="">${placeholder}</option>`;
+    ports.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.port;
+        opt.textContent = `${p.port} — ${p.desc}`;
+        sel.appendChild(opt);
+    });
+    if (saved) {
+        for (const opt of sel.options) {
+            if (opt.value === saved) { sel.value = saved; break; }
+        }
+    }
+}
+
+async function refreshComPorts() {
+    const ports = await fetchPorts();
+    populatePortSelect(document.getElementById('comPortSelect'), ports, 'Auto-detect');
+    populatePortSelect(document.getElementById('serialPortSelect'), ports, 'Select port...');
+}
+
+async function refreshSerialPorts() {
+    const ports = await fetchPorts();
+    populatePortSelect(document.getElementById('serialPortSelect'), ports, 'Select port...');
+    // Also sync the panel dropdown
+    populatePortSelect(document.getElementById('comPortSelect'), ports, 'Auto-detect');
+}
+
+function getSelectedPort() {
+    // Prefer serial overlay dropdown, fallback to panel dropdown
+    return document.getElementById('serialPortSelect').value
+        || document.getElementById('comPortSelect').value;
+}
+
+// Refresh COM ports on load
+refreshComPorts();
+
+async function buildFirmware() {
+    await saveLayout();
+    await startBuildJob('/api/build', 'btnBuild');
+}
+
+async function uploadFirmware() {
+    await saveLayout();
+    await startBuildJob('/api/upload', 'btnUpload');
+}
+
+async function deployFirmware() {
+    const btn = document.getElementById('btnDeploy');
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+    await saveLayout();
+    btn.textContent = 'Building...';
+    const buildOk = await runBuildJob('/api/build', btn);
+    if (!buildOk) { setTimeout(() => { btn.textContent = 'Deploy All'; btn.disabled = false; btn.style.background = ''; }, 3000); return; }
+    btn.textContent = 'Uploading...';
+    btn.style.background = '';
+    const uploadOk = await runBuildJob('/api/upload', btn);
+    btn.textContent = uploadOk ? 'Deployed!' : 'Failed!';
+    btn.style.background = uploadOk ? '#2ea043' : '#da3633';
+    setTimeout(() => { btn.textContent = 'Deploy All'; btn.disabled = false; btn.style.background = ''; }, 3000);
+}
+
+// ============================================================
+// Output Overlay (Build + Serial tabs)
+// ============================================================
+let currentOutputTab = 'build';
+let outputExpanded = false;
+
+function showOutput(tab) {
+    const overlay = document.getElementById('outputOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.remove('collapsed');
+    if (tab) switchOutputTab(tab);
+}
+
+function closeOutput() {
+    const overlay = document.getElementById('outputOverlay');
+    overlay.style.display = 'none';
+    if (serialConnected) disconnectSerial();
+}
+
+function switchOutputTab(tab) {
+    currentOutputTab = tab;
+    const isSerial = tab === 'serial';
+    document.getElementById('tabBuild').className = 'output-tab' + (tab === 'build' ? ' active' : '');
+    document.getElementById('tabSerial').className = 'output-tab' + (isSerial ? ' active-serial' : '');
+    document.getElementById('buildLog').style.display = tab === 'build' ? 'block' : 'none';
+    document.getElementById('serialLog').style.display = isSerial ? 'block' : 'none';
+    document.getElementById('btnSerialToggle').style.display = isSerial ? 'inline-block' : 'none';
+    document.getElementById('serialPortSelect').style.display = isSerial && !serialConnected ? 'inline-block' : 'none';
+    document.getElementById('btnSerialRefresh').style.display = isSerial && !serialConnected ? 'inline-block' : 'none';
+    document.getElementById('serialStatusDot').style.display = isSerial && serialConnected ? 'inline-block' : 'none';
+    document.getElementById('serialStatusLabel').style.display = isSerial ? 'inline' : 'none';
+
+    // Auto-refresh ports when switching to serial tab
+    if (isSerial && !serialConnected) {
+        refreshSerialPorts();
+        // Show welcome message if log is empty
+        const log = document.getElementById('serialLog');
+        if (!log.textContent.trim()) {
+            log.textContent = '1. Select a COM port from the dropdown above\n2. Click Connect\n\nTip: Make sure the device is plugged in via USB.\n';
+        }
+    }
+}
+
+function toggleOutputExpand() {
+    const overlay = document.getElementById('outputOverlay');
+    const btn = document.getElementById('btnOutputExpand');
+    if (overlay.classList.contains('collapsed')) {
+        // Restore from collapsed
+        overlay.classList.remove('collapsed');
+        overlay.style.height = (outputExpanded ? '70%' : '220px');
+        btn.innerHTML = outputExpanded ? '&#x2912;' : '&#x2913;';
+    } else if (outputExpanded) {
+        // Shrink back to default
+        overlay.style.height = '220px';
+        outputExpanded = false;
+        btn.innerHTML = '&#x2913;';
+    } else {
+        // Expand to 70%
+        const parent = overlay.parentElement;
+        const maxH = parent ? Math.floor(parent.offsetHeight * 0.7) : 400;
+        overlay.style.height = maxH + 'px';
+        outputExpanded = true;
+        btn.innerHTML = '&#x2912;';
+    }
+}
+
+function clearOutputLog() {
+    if (currentOutputTab === 'build') {
+        document.getElementById('buildLog').textContent = '';
+    } else {
+        document.getElementById('serialLog').textContent = '';
+    }
+}
+
+function copyOutputLog() {
+    const logId = currentOutputTab === 'build' ? 'buildLog' : 'serialLog';
+    const log = document.getElementById(logId);
+    // Copy selection if any, otherwise copy entire log
+    const sel = window.getSelection();
+    const text = (sel && sel.toString().trim()) ? sel.toString() : log.textContent;
+    if (!text.trim()) return;
+    navigator.clipboard.writeText(text).then(() => {
+        // Brief visual feedback on the Copy button
+        const btn = document.querySelector('[onclick="copyOutputLog()"]');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 1200);
+    });
+}
+
+// ---- Build functions ----
+function runBuildJob(endpoint, btn) {
+    return new Promise(async (resolve) => {
+        showOutput('build');
+        const logPre = document.getElementById('buildLog');
+        const board = document.getElementById('boardSelect').value;
+        const payload = { board, firmware: activeFirmware };
+        if (endpoint.includes('upload')) { const port = getSelectedPort(); if (port) payload.port = port; }
+        try {
+            const resp = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await resp.json();
+            if (data.error) { logPre.textContent += 'Error: ' + data.error + '\n'; resolve(false); return; }
+            if (data.build_id !== undefined) {
+                let lastLine = 0;
+                const poll = async () => {
+                    try {
+                        const r = await fetch(`/api/build-status?id=${data.build_id}&from=${lastLine}`);
+                        const d = await r.json();
+                        if (d.lines && d.lines.length > 0) { logPre.textContent += d.lines.join('\n') + '\n'; lastLine += d.lines.length; logPre.scrollTop = logPre.scrollHeight; }
+                        if (d.done) { resolve(d.success); } else { setTimeout(poll, 500); }
+                    } catch (e) { resolve(false); }
+                };
+                poll();
+            } else { resolve(false); }
+        } catch (e) { logPre.textContent += 'Server not running.\n'; resolve(false); }
+    });
+}
+
+async function startBuildJob(endpoint, btnId) {
+    const btn = document.getElementById(btnId);
+    const origText = btn.textContent;
+    btn.textContent = 'Working...';
+    btn.disabled = true;
+
+    showOutput('build');
+    const logPre = document.getElementById('buildLog');
+    logPre.textContent = '';
+
+    const board = document.getElementById('boardSelect').value;
+    const payload = { board, firmware: activeFirmware };
+    if (endpoint.includes('upload')) { const port = getSelectedPort(); if (port) payload.port = port; }
+
+    try {
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+
+        if (data.error) {
+            logPre.textContent = 'Error: ' + data.error;
+            btn.textContent = origText;
+            btn.disabled = false;
+            return;
+        }
+
+        if (data.build_id !== undefined) {
+            pollBuildStatus(data.build_id, btn, logPre, origText);
+        }
+    } catch (e) {
+        logPre.textContent = 'Server not running. Start with: python designer/server.py';
+        btn.textContent = origText;
+        btn.disabled = false;
+    }
+}
+
+function pollBuildStatus(buildId, btn, logPre, origText) {
+    let lastLine = 0;
+    const poll = async () => {
+        try {
+            const resp = await fetch(`/api/build-status?id=${buildId}&from=${lastLine}`);
+            const data = await resp.json();
+            if (data.lines && data.lines.length > 0) {
+                logPre.textContent += data.lines.join('\n') + '\n';
+                lastLine += data.lines.length;
+                logPre.scrollTop = logPre.scrollHeight;
+            }
+            if (data.done) {
+                btn.textContent = data.success ? 'Done!' : 'Failed!';
+                btn.disabled = false;
+                btn.style.background = data.success ? '#2ea043' : '#da3633';
+                setTimeout(() => { btn.textContent = origText; btn.style.background = ''; }, 3000);
+            } else {
+                setTimeout(poll, 500);
+            }
+        } catch (e) { btn.textContent = origText; btn.disabled = false; }
+    };
+    poll();
+}
+
+// ---- Serial monitor ----
+let serialPolling = null;
+let serialLastLine = 0;
+let serialConnected = false;
+
+function openSerial() {
+    showOutput('serial');
+}
+
+async function toggleSerial() {
+    if (serialConnected) {
+        await disconnectSerial();
+    } else {
+        await connectSerial();
+    }
+}
+
+async function connectSerial() {
+    const port = getSelectedPort();
+    if (!port) {
+        const log = document.getElementById('serialLog');
+        log.textContent = 'No port selected.\n\n1. Select a COM port from the dropdown above\n2. Click Connect\n\nTip: Click the refresh button if your device is not listed.\n';
+        // Flash the port dropdown to draw attention
+        const sel = document.getElementById('serialPortSelect');
+        sel.style.borderColor = '#f85149';
+        setTimeout(() => sel.style.borderColor = '#30363d', 2000);
+        return;
+    }
+
+    const btn = document.getElementById('btnSerialToggle');
+    btn.textContent = 'Connecting...';
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch('/api/serial-connect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ port, baud: 115200 })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            serialConnected = true;
+            serialLastLine = 0;
+            document.getElementById('serialLog').textContent = '';
+            updateSerialStatus(port, true);
+            btn.textContent = 'Disconnect';
+            btn.disabled = false;
+            // Hide port selector while connected
+            document.getElementById('serialPortSelect').style.display = 'none';
+            document.getElementById('btnSerialRefresh').style.display = 'none';
+            startSerialPolling();
+        } else {
+            document.getElementById('serialLog').textContent += 'Failed: ' + (data.error || 'Unknown') + '\n';
+            btn.textContent = 'Connect';
+            btn.disabled = false;
+        }
+    } catch (e) {
+        document.getElementById('serialLog').textContent += 'Server error: ' + e.message + '\n';
+        btn.textContent = 'Connect';
+        btn.disabled = false;
+    }
+}
+
+async function disconnectSerial() {
+    stopSerialPolling();
+    try {
+        await fetch('/api/serial-disconnect', { method: 'POST' });
+    } catch (e) {}
+    serialConnected = false;
+    updateSerialStatus('', false);
+    const btn = document.getElementById('btnSerialToggle');
+    btn.textContent = 'Connect';
+    btn.disabled = false;
+    // Show port selector again
+    if (currentOutputTab === 'serial') {
+        document.getElementById('serialPortSelect').style.display = 'inline-block';
+        document.getElementById('btnSerialRefresh').style.display = 'inline-block';
+    }
+}
+
+function updateSerialStatus(port, connected) {
+    const dot = document.getElementById('serialStatusDot');
+    const label = document.getElementById('serialStatusLabel');
+    dot.style.display = connected ? 'inline-block' : 'none';
+    label.textContent = connected ? port : 'Disconnected';
+    label.style.color = connected ? '#3fb950' : '#8b949e';
+}
+
+function startSerialPolling() {
+    stopSerialPolling();
+    const poll = async () => {
+        try {
+            const resp = await fetch(`/api/serial-read?from=${serialLastLine}`);
+            const data = await resp.json();
+            if (data.lines && data.lines.length > 0) {
+                const log = document.getElementById('serialLog');
+                log.textContent += data.lines.join('\n') + '\n';
+                serialLastLine += data.lines.length;
+                if (log.scrollHeight - log.scrollTop - log.clientHeight < 100) {
+                    log.scrollTop = log.scrollHeight;
+                }
+            }
+            if (!data.connected && serialConnected) {
+                serialConnected = false;
+                updateSerialStatus('', false);
+                document.getElementById('btnSerialToggle').textContent = 'Connect';
+                if (currentOutputTab === 'serial') {
+                    document.getElementById('serialPortSelect').style.display = 'inline-block';
+                    document.getElementById('btnSerialRefresh').style.display = 'inline-block';
+                }
+                stopSerialPolling();
+                return;
+            }
+        } catch (e) {}
+        serialPolling = setTimeout(poll, 200);
+    };
+    poll();
+}
+
+function stopSerialPolling() {
+    if (serialPolling) {
+        clearTimeout(serialPolling);
+        serialPolling = null;
+    }
+}
+
+// ============================================================
+// Panel Resizer
+// ============================================================
+{
+    const resizer = document.getElementById('panelResizer');
+    const panel = document.getElementById('rightPanel');
+    let startX, startW;
+
+    resizer.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        startX = e.clientX;
+        startW = panel.offsetWidth;
+        resizer.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        const onMove = (e) => {
+            const delta = startX - e.clientX;
+            const newW = Math.max(200, Math.min(600, startW + delta));
+            panel.style.width = newW + 'px';
+        };
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            resizer.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    });
+}
+
+// ============================================================
+// Output Overlay Resizer
+// ============================================================
+{
+    const resizer = document.getElementById('outputResizer');
+    const overlay = document.getElementById('outputOverlay');
+    let startY, startH;
+
+    resizer.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        startY = e.clientY;
+        startH = overlay.offsetHeight;
+        overlay.classList.remove('collapsed', 'expanded');
+        resizer.classList.add('active');
+        document.body.style.cursor = 'ns-resize';
+        document.body.style.userSelect = 'none';
+
+        const onMove = (e) => {
+            const delta = startY - e.clientY;
+            const parent = overlay.parentElement;
+            const maxH = parent ? parent.offsetHeight - 40 : 600;
+            const newH = Math.max(80, Math.min(maxH, startH + delta));
+            overlay.style.height = newH + 'px';
+        };
+        const onUp = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            resizer.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    });
+}
+
+async function loadSavedLayout() {
+    try {
+        const resp = await fetch('/api/layouts');
+        if (!resp.ok) return;
+        const layouts = await resp.json();
+        _lastLoadedLayouts = layouts;
+
+        // Set board
+        if (layouts.board) {
+            const boardSel = document.getElementById('boardSelect');
+            if (boardSel.value !== layouts.board) {
+                boardSel.value = layouts.board;
+                const board = BOARDS[layouts.board];
+                if (board) { SCR_W = board.w; SCR_H = board.h; recalcLayout(); }
+            }
+        }
+
+        // Determine which firmware data to load
+        // New format: layouts.v1 / layouts.v2 objects
+        // Old format: layouts.screens at top level (treat as v1)
+        const fwData = layouts[activeFirmware]
+            || (activeFirmware === 'v1' && layouts.screens ? { screens: layouts.screens, customElements: layouts.customElements, deletedElementIds: layouts.deletedElementIds } : null);
+
+        if (!fwData || !fwData.screens || fwData.screens.length === 0) return;
+
+        // Restore deleted element IDs before rebuild so they get filtered
+        // Migrate old format (plain IDs) to new per-screen format ("screenIdx:elementId")
+        const rawDeleted = fwData.deletedElementIds || [];
+        deletedElementIds = new Set();
+        for (const entry of rawDeleted) {
+            if (entry.includes(':')) {
+                deletedElementIds.add(entry);  // new format
+            } else {
+                // Old format: plain ID — apply to all screens
+                for (let si = 0; si < SCREEN_NAMES.length; si++) {
+                    deletedElementIds.add(`${si}:${entry}`);
+                }
+            }
+        }
+
+        // Restore screen order from saved layout
+        const savedNames = fwData.screens.map(s => s.name);
+        const savedTitles = fwData.screens.map(s => s.title);
+        if (savedNames.length > 0) {
+            SCREEN_NAMES = savedNames;
+            SCREEN_TITLES = savedTitles;
+            // Rebuild screen elements in the saved order
+            rebuildScreens();
+            // Ensure customElements array matches
+            while (customElements.length < SCREEN_NAMES.length) customElements.push([]);
+            customElements.length = SCREEN_NAMES.length;
+        }
+
+        // Apply saved positions
+        fwData.screens.forEach((savedScreen, screenIdx) => {
+            if (!screenElements[screenIdx]) return;
+            const savedMap = {};
+            savedScreen.elements.forEach(el => { if (el.id) savedMap[el.id] = el; });
+
+            screenElements[screenIdx].forEach(el => {
+                if (el.id && savedMap[el.id]) {
+                    const saved = savedMap[el.id];
+                    // Restore all saved properties onto the generated element
+                    for (const key of Object.keys(saved)) {
+                        el[key] = saved[key];
+                    }
+                }
+            });
+        });
+
+        // Restore custom elements
+        if (fwData.customElements) {
+            fwData.customElements.forEach(saved => {
+                const si = saved.screen;
+                if (si >= 0 && si < customElements.length && saved.elements) {
+                    customElements[si] = saved.elements;
+                    saved.elements.forEach(el => {
+                        if (el.id) {
+                            const m = el.id.match(/custom_\w+_(\d+)/);
+                            if (m) nextCustomId = Math.max(nextCustomId, parseInt(m[1]) + 1);
+                        }
+                    });
+                }
+            });
+        }
+
+        if (currentScreen >= SCREEN_NAMES.length) currentScreen = 0;
+        buildTabs();
+        render();
+        console.log(`Loaded saved layout (${activeFirmware}) from server`);
+    } catch (e) {
+        // Not served by server.py — that's fine, use defaults
+    }
+    // Reveal canvas now that layout is fully loaded
+    document.querySelector('.canvas-area').classList.add('ready');
+}
+
+// ============================================================
+// Init
+// ============================================================
+function init() {
+    buildToolbox();
+    buildColorPalette();
+    buildDataPanel();
+    buildTabs();
+    rebuildScreens();
+    resizeCanvas();
+
+    // Load VLW font atlas for pixel-perfect rendering
+    const atlasPromise = fetch('./font_atlas.json')
+        .then(r => r.json())
+        .then(atlas => { fontAtlas = atlas; console.log('Font atlas loaded'); })
+        .catch(() => console.warn('Font atlas not found, using browser fonts'));
+
+    // Wait for both font and atlas, then load saved layout and reveal
+    const fontPromise = document.fonts ? document.fonts.ready.then(() => { fontLoaded = true; }) : Promise.resolve();
+
+    Promise.all([fontPromise, atlasPromise]).then(() => {
+        render();
+        loadSavedLayout();
+    });
+
+    // Fallback: reveal after 1s even if font/atlas loading is slow
+    setTimeout(() => {
+        if (!document.querySelector('.canvas-area.ready')) {
+            render();
+            loadSavedLayout();
+        }
+    }, 1000);
+}
+
+// Close modal on overlay click
+document.getElementById('exportModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('exportModal')) closeExportModal();
+});
+
+// Keyboard shortcuts
+let clipboardEl = null; // copied element snapshot
+
+document.addEventListener('keydown', (e) => {
+    // Skip shortcuts when typing in an input/select
+    const tag = e.target.tagName;
+    const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    // Copy element (Ctrl+C)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !isInput && selectedIdx >= 0) {
+        const el = getAllElements(currentScreen)[selectedIdx];
+        if (el) {
+            clipboardEl = {};
+            for (const k of Object.keys(el)) {
+                if (k !== '_bbox') clipboardEl[k] = typeof el[k] === 'object' && el[k] !== null ? JSON.parse(JSON.stringify(el[k])) : el[k];
+            }
+        }
+        return;
+    }
+
+    // Paste element (Ctrl+V) — same position, same size, new ID
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v' && !isInput && clipboardEl) {
+        e.preventDefault();
+        pushUndo();
+        const newEl = {};
+        for (const k of Object.keys(clipboardEl)) {
+            newEl[k] = typeof clipboardEl[k] === 'object' && clipboardEl[k] !== null ? JSON.parse(JSON.stringify(clipboardEl[k])) : clipboardEl[k];
+        }
+        newEl.id = generateId(newEl.type);
+        customElements[currentScreen].push(newEl);
+        const allEls = getAllElements(currentScreen);
+        selectedIdx = allEls.length - 1;
+        render();
+        updatePropsPanel();
+        return;
+    }
+
+    // Undo / Redo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault(); undo(); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault(); redo(); return;
+    }
+
+    if (e.key === 'Escape') {
+        if (document.getElementById('exportModal').classList.contains('visible')) {
+            closeExportModal();
+        } else {
+            selectedIdx = -1;
+            render();
+            updatePropsPanel();
+        }
+    }
+    if (e.key === 'Delete' && selectedIdx >= 0) {
+        pushUndo();
+        const allEls = getAllElements(currentScreen);
+        const el = allEls[selectedIdx];
+        const customIdx = customElements[currentScreen].indexOf(el);
+        if (customIdx >= 0) {
+            customElements[currentScreen].splice(customIdx, 1);
+        } else {
+            const screenIdx = screenElements[currentScreen].indexOf(el);
+            if (screenIdx >= 0) {
+                screenElements[currentScreen].splice(screenIdx, 1);
+                if (el.id) deletedElementIds.add(`${currentScreen}:${el.id}`);
+            }
+        }
+        selectedIdx = -1;
+        render();
+        updatePropsPanel();
+    }
+    // Arrow keys to nudge selected element
+    if (selectedIdx >= 0 && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+        pushUndo();
+        const el = getAllElements(currentScreen)[selectedIdx];
+        const step = e.shiftKey ? 5 : 1;
+        if (e.key === 'ArrowLeft') el.x -= step;
+        if (e.key === 'ArrowRight') el.x += step;
+        if (e.key === 'ArrowUp') el.y -= step;
+        if (e.key === 'ArrowDown') el.y += step;
+        render();
+        updatePropsPanel();
+    }
+});
+
+// ============================================================
+// Double-click inline text editing
+// ============================================================
+canvas.addEventListener('dblclick', (e) => {
+    const pos = canvasToLogical(e.clientX, e.clientY);
+    const hit = hitTest(pos.x, pos.y);
+    if (hit < 0) return;
+
+    const el = getAllElements(currentScreen)[hit];
+    // Only editable if element has a text property
+    if (el.text === undefined) return;
+
+    selectedIdx = hit;
+    render();
+    updatePropsPanel();
+
+    const bbox = el._bbox;
+    if (!bbox) return;
+
+    // Position an input overlay on the canvas-wrap
+    const wrap = document.getElementById('canvasWrap');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'inline-edit';
+    input.value = el.text;
+
+    const fontSize = FONTS[el.font] || FONTS['sm'];
+    input.style.fontSize = (fontSize * zoom) + 'px';
+    input.style.left = (bbox.x * zoom) + 'px';
+    input.style.top = (bbox.y * zoom) + 'px';
+    input.style.width = Math.max(bbox.w * zoom + 20, 60) + 'px';
+    input.style.height = (bbox.h * zoom + 4) + 'px';
+    input.style.color = clr(el.color);
+
+    wrap.appendChild(input);
+    input.focus();
+    input.select();
+
+    function commit() {
+        const newText = input.value;
+        if (newText !== el.text) {
+            pushUndo();
+            el.text = newText;
+            render();
+            updatePropsPanel();
+        }
+        if (input.parentNode) input.parentNode.removeChild(input);
+    }
+
+    input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+        if (ev.key === 'Escape') { if (input.parentNode) input.parentNode.removeChild(input); }
+        ev.stopPropagation(); // prevent arrow-key nudging while editing text
+    });
+
+    input.addEventListener('blur', commit);
+});
+
+init();
+
+// Position zoom ruler next to toolbox
+(function() {
+    const ruler = document.createElement('div');
+    ruler.className = 'zoom-ruler';
+    ruler.id = 'zoomRuler';
+    ruler.innerHTML = `
+        <button onclick="zoomStep(1)" title="Zoom in">+</button>
+        <input type="range" id="zoomSlider" min="1" max="6" step="1" value="3"
+               oninput="setZoomFromSlider(+this.value)">
+        <button onclick="zoomStep(-1)" title="Zoom out">&minus;</button>
+        <div class="zoom-label" id="zoomLabel">3x</div>
+    `;
+    document.body.appendChild(ruler);
+    function posRuler() {
+        const tb = document.querySelector('.toolbox');
+        ruler.style.left = (tb ? tb.getBoundingClientRect().right + 8 : 180) + 'px';
+    }
+    posRuler();
+    new MutationObserver(posRuler).observe(document.querySelector('.toolbox'), { attributes: true });
+    window.addEventListener('resize', posRuler);
+})();
+</script>
+</body>
+</html>
