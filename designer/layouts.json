@@ -1,0 +1,2755 @@
+{
+  "version": 1,
+  "board": "waveshare",
+  "screens": [
+    {
+      "name": "Claude.ai",
+      "title": "CLAUDE.AI USAGE",
+      "elements": [
+        {
+          "id": "screen_title_0",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 0,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "CLAUDE.AI USAGE",
+          "datum": "ML"
+        },
+        {
+          "id": "cai_5h",
+          "type": "donutGauge",
+          "x": 96,
+          "y": 104,
+          "color": "CLR_TEXT_BRIGHT",
+          "pct": 58,
+          "r": 38,
+          "thickness": 7,
+          "pctFont": "md",
+          "pctColor": "CLR_TEXT_BRIGHT"
+        },
+        {
+          "id": "cai_7d",
+          "type": "donutGauge",
+          "x": 240,
+          "y": 104,
+          "color": "CLR_PEACH",
+          "pct": 45,
+          "r": 38,
+          "thickness": 7,
+          "pctFont": "md",
+          "pctColor": "CLR_TEXT_BRIGHT"
+        },
+        {
+          "id": "cai_5h_label",
+          "type": "text",
+          "x": 96,
+          "y": 24,
+          "font": "26",
+          "color": "CLR_TEXT_BRIGHT",
+          "text": "2:22:00",
+          "datum": "TC"
+        },
+        {
+          "id": "cai_7d_label",
+          "type": "text",
+          "x": 241,
+          "y": 24,
+          "font": "26",
+          "color": "CLR_PEACH",
+          "text": "7d 0h0m",
+          "datum": "TC"
+        },
+        {
+          "id": "cai_5h_cd",
+          "type": "countdownBar",
+          "x": 152,
+          "y": 24,
+          "w": 12,
+          "h": 120,
+          "color": "CLR_TEXT_BRIGHT",
+          "pct": 0.47333333333333333
+        },
+        {
+          "id": "cai_7d_cd",
+          "type": "countdownBar",
+          "x": 296,
+          "y": 24,
+          "w": 12,
+          "h": 120,
+          "color": "CLR_PEACH",
+          "pct": 1
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Overview",
+      "title": "USAGE OVERVIEW",
+      "elements": [
+        {
+          "id": "screen_title_1",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "USAGE OVERVIEW",
+          "datum": "ML"
+        },
+        {
+          "id": "lbl_today",
+          "type": "text",
+          "x": 52,
+          "y": 26,
+          "font": "sm",
+          "color": "CLR_AMBER",
+          "text": "TODAY",
+          "datum": "TL"
+        },
+        {
+          "id": "cost_today",
+          "type": "cost",
+          "x": 52,
+          "y": 38,
+          "font": "xl",
+          "color": "CLR_PEACH",
+          "value": 0
+        },
+        {
+          "id": "lbl_month",
+          "type": "text",
+          "x": 52,
+          "y": 88,
+          "font": "sm",
+          "color": "CLR_AMBER",
+          "text": "THIS MONTH",
+          "datum": "TL"
+        },
+        {
+          "id": "cost_month",
+          "type": "cost",
+          "x": 52,
+          "y": 104,
+          "font": "lg",
+          "color": "CLR_SKY",
+          "value": 51.27
+        },
+        {
+          "id": "div_main",
+          "type": "vline",
+          "x": 181,
+          "y": 30,
+          "h": 134,
+          "color": "CLR_AMBER"
+        },
+        {
+          "id": "lbl_breakdown",
+          "type": "text",
+          "x": 188,
+          "y": 26,
+          "font": "sm",
+          "color": "CLR_AMBER",
+          "text": "COST BREAKDOWN",
+          "datum": "TL"
+        },
+        {
+          "id": "cost_model_0",
+          "type": "costRow",
+          "x": 188,
+          "y": 44,
+          "w": 126,
+          "color": "CLR_AMBER",
+          "name": "opus-4",
+          "cost": 2.7119999999999997,
+          "maxCost": 2.7119999999999997
+        },
+        {
+          "id": "cost_model_1",
+          "type": "costRow",
+          "x": 188,
+          "y": 69,
+          "w": 126,
+          "color": "CLR_LAVENDER",
+          "name": "sonnet-4",
+          "cost": 1.3559999999999999,
+          "maxCost": 2.7119999999999997
+        },
+        {
+          "id": "cost_model_2",
+          "type": "costRow",
+          "x": 188,
+          "y": 94,
+          "w": 126,
+          "color": "CLR_BLUE",
+          "name": "haiku-3.5",
+          "cost": 0.45199999999999996,
+          "maxCost": 2.7119999999999997
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Models",
+      "title": "TODAY MODEL ANALYSIS",
+      "elements": [
+        {
+          "id": "screen_title_2",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "TODAY MODEL ANALYSIS",
+          "datum": "ML"
+        },
+        {
+          "id": "tm_model_0",
+          "type": "modelRow",
+          "x": 52,
+          "y": 26,
+          "w": 264,
+          "model": {
+            "name": "opus-4",
+            "inp": 250000,
+            "out": 80000,
+            "color": "CLR_AMBER"
+          },
+          "maxTotal": 330000
+        },
+        {
+          "id": "tm_model_1",
+          "type": "modelRow",
+          "x": 52,
+          "y": 50,
+          "w": 264,
+          "model": {
+            "name": "sonnet-4",
+            "inp": 180000,
+            "out": 60000,
+            "color": "CLR_LAVENDER"
+          },
+          "maxTotal": 330000
+        },
+        {
+          "id": "tm_model_2",
+          "type": "modelRow",
+          "x": 52,
+          "y": 74,
+          "w": 264,
+          "model": {
+            "name": "haiku-3.5",
+            "inp": 50000,
+            "out": 20000,
+            "color": "CLR_BLUE"
+          },
+          "maxTotal": 330000
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Monthly Models",
+      "title": "MONTHLY MODELS",
+      "elements": [
+        {
+          "id": "screen_title_3",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "MONTHLY MODELS",
+          "datum": "ML"
+        },
+        {
+          "id": "mm_model_0",
+          "type": "modelRow",
+          "x": 52,
+          "y": 26,
+          "w": 264,
+          "model": {
+            "name": "opus-4",
+            "inp": 3750000,
+            "out": 1200000,
+            "color": "CLR_AMBER"
+          },
+          "maxTotal": 4950000
+        },
+        {
+          "id": "mm_model_1",
+          "type": "modelRow",
+          "x": 52,
+          "y": 50,
+          "w": 264,
+          "model": {
+            "name": "sonnet-4",
+            "inp": 2700000,
+            "out": 900000,
+            "color": "CLR_LAVENDER"
+          },
+          "maxTotal": 4950000
+        },
+        {
+          "id": "mm_model_2",
+          "type": "modelRow",
+          "x": 52,
+          "y": 74,
+          "w": 264,
+          "model": {
+            "name": "haiku-3.5",
+            "inp": 750000,
+            "out": 300000,
+            "color": "CLR_BLUE"
+          },
+          "maxTotal": 4950000
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Code",
+      "title": "TODAY CODE ANALYTICS",
+      "elements": [
+        {
+          "id": "screen_title_4",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "TODAY CODE ANALYTICS",
+          "datum": "ML"
+        },
+        {
+          "id": "tc_sec_sessions",
+          "type": "sectionHeader",
+          "x": 52,
+          "y": 26,
+          "color": "CLR_AMBER",
+          "text": "SESSIONS"
+        },
+        {
+          "id": "tc_val_sessions",
+          "type": "text",
+          "x": 176,
+          "y": 26,
+          "font": "md",
+          "color": "CLR_TEXT_BRIGHT",
+          "text": "12",
+          "datum": "TR"
+        },
+        {
+          "id": "tc_sec_lines",
+          "type": "sectionHeader",
+          "x": 52,
+          "y": 50,
+          "color": "CLR_AMBER",
+          "text": "LINES"
+        },
+        {
+          "id": "tc_val_lines",
+          "type": "text",
+          "x": 176,
+          "y": 66,
+          "font": "sm",
+          "color": "CLR_SKY",
+          "text": "+340 / -120",
+          "datum": "TR"
+        },
+        {
+          "id": "tc_row_commits",
+          "type": "statusRow",
+          "x": 52,
+          "y": 84,
+          "w": 124,
+          "color": "CLR_PEACH",
+          "label": "COMMITS",
+          "value": "8"
+        },
+        {
+          "id": "tc_row_prs",
+          "type": "statusRow",
+          "x": 52,
+          "y": 102,
+          "w": 124,
+          "color": "CLR_PEACH",
+          "label": "PULL REQS",
+          "value": "3"
+        },
+        {
+          "id": "tc_lbl_cost",
+          "type": "text",
+          "x": 52,
+          "y": 120,
+          "font": "sm",
+          "color": "CLR_AMBER",
+          "text": "EST. COST",
+          "datum": "TL"
+        },
+        {
+          "id": "tc_val_cost",
+          "type": "text",
+          "x": 176,
+          "y": 120,
+          "font": "sm",
+          "color": "CLR_SKY",
+          "text": "$4.52",
+          "datum": "TR"
+        },
+        {
+          "id": "tc_div",
+          "type": "vline",
+          "x": 182,
+          "y": 30,
+          "h": 122,
+          "color": "CLR_AMBER"
+        },
+        {
+          "id": "tc_sec_accept",
+          "type": "sectionHeader",
+          "x": 188,
+          "y": 26,
+          "color": "CLR_AMBER",
+          "text": "TOOL ACCEPTANCE"
+        },
+        {
+          "id": "tc_bar_edit",
+          "type": "acceptBar",
+          "x": 188,
+          "y": 44,
+          "w": 126,
+          "color": "CLR_SKY",
+          "label": "EDIT",
+          "accepted": 85,
+          "rejected": 15
+        },
+        {
+          "id": "tc_bar_write",
+          "type": "acceptBar",
+          "x": 188,
+          "y": 62,
+          "w": 126,
+          "color": "CLR_LAVENDER",
+          "label": "WRITE",
+          "accepted": 70,
+          "rejected": 30
+        },
+        {
+          "id": "tc_hline",
+          "type": "hline",
+          "x": 188,
+          "y": 82,
+          "w": 126,
+          "color": "CLR_TEXT_DIM"
+        },
+        {
+          "id": "tc_sec_users",
+          "type": "sectionHeader",
+          "x": 188,
+          "y": 98,
+          "color": "CLR_AMBER",
+          "text": "USERS"
+        },
+        {
+          "id": "tc_row_user",
+          "type": "statusRow",
+          "x": 188,
+          "y": 116,
+          "w": 126,
+          "color": "CLR_PEACH",
+          "label": "user@exam...",
+          "value": "$4.52"
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Monthly Code",
+      "title": "MONTHLY CODE",
+      "elements": [
+        {
+          "id": "screen_title_5",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "MONTHLY CODE",
+          "datum": "ML"
+        },
+        {
+          "id": "mc_sec_sessions",
+          "type": "sectionHeader",
+          "x": 52,
+          "y": 26,
+          "color": "CLR_AMBER",
+          "text": "SESSIONS"
+        },
+        {
+          "id": "mc_val_sessions",
+          "type": "text",
+          "x": 176,
+          "y": 26,
+          "font": "md",
+          "color": "CLR_TEXT_BRIGHT",
+          "text": "48",
+          "datum": "TR"
+        },
+        {
+          "id": "mc_sec_lines",
+          "type": "sectionHeader",
+          "x": 52,
+          "y": 50,
+          "color": "CLR_AMBER",
+          "text": "LINES"
+        },
+        {
+          "id": "mc_val_lines",
+          "type": "text",
+          "x": 176,
+          "y": 66,
+          "font": "sm",
+          "color": "CLR_SKY",
+          "text": "+1360 / -480",
+          "datum": "TR"
+        },
+        {
+          "id": "mc_row_commits",
+          "type": "statusRow",
+          "x": 52,
+          "y": 84,
+          "w": 124,
+          "color": "CLR_PEACH",
+          "label": "COMMITS",
+          "value": "32"
+        },
+        {
+          "id": "mc_row_prs",
+          "type": "statusRow",
+          "x": 52,
+          "y": 102,
+          "w": 124,
+          "color": "CLR_PEACH",
+          "label": "PULL REQS",
+          "value": "12"
+        },
+        {
+          "id": "mc_lbl_cost",
+          "type": "text",
+          "x": 52,
+          "y": 120,
+          "font": "sm",
+          "color": "CLR_AMBER",
+          "text": "EST. COST",
+          "datum": "TL"
+        },
+        {
+          "id": "mc_val_cost",
+          "type": "text",
+          "x": 176,
+          "y": 120,
+          "font": "sm",
+          "color": "CLR_SKY",
+          "text": "$18.08",
+          "datum": "TR"
+        },
+        {
+          "id": "mc_div",
+          "type": "vline",
+          "x": 182,
+          "y": 30,
+          "h": 122,
+          "color": "CLR_AMBER"
+        },
+        {
+          "id": "mc_sec_accept",
+          "type": "sectionHeader",
+          "x": 188,
+          "y": 26,
+          "color": "CLR_AMBER",
+          "text": "TOOL ACCEPTANCE"
+        },
+        {
+          "id": "mc_bar_edit",
+          "type": "acceptBar",
+          "x": 188,
+          "y": 44,
+          "w": 126,
+          "color": "CLR_SKY",
+          "label": "EDIT",
+          "accepted": 85,
+          "rejected": 15
+        },
+        {
+          "id": "mc_bar_write",
+          "type": "acceptBar",
+          "x": 188,
+          "y": 62,
+          "w": 126,
+          "color": "CLR_LAVENDER",
+          "label": "WRITE",
+          "accepted": 70,
+          "rejected": 30
+        },
+        {
+          "id": "mc_hline",
+          "type": "hline",
+          "x": 188,
+          "y": 82,
+          "w": 126,
+          "color": "CLR_TEXT_DIM"
+        },
+        {
+          "id": "mc_sec_users",
+          "type": "sectionHeader",
+          "x": 188,
+          "y": 98,
+          "color": "CLR_AMBER",
+          "text": "USERS"
+        },
+        {
+          "id": "mc_row_user",
+          "type": "statusRow",
+          "x": 188,
+          "y": 116,
+          "w": 126,
+          "color": "CLR_PEACH",
+          "label": "user@exam...",
+          "value": "$18.08"
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Status",
+      "title": "SYSTEM STATUS",
+      "elements": [
+        {
+          "id": "screen_title_6",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "SYSTEM STATUS",
+          "datum": "ML"
+        },
+        {
+          "id": "st_sec_net",
+          "type": "sectionHeader",
+          "x": 52,
+          "y": 26,
+          "color": "CLR_AMBER",
+          "text": "NETWORK"
+        },
+        {
+          "id": "st_wifi",
+          "type": "statusRow",
+          "x": 52,
+          "y": 42,
+          "w": 124,
+          "color": "CLR_STATUS_OK",
+          "label": "WiFi",
+          "value": "CONNECTED"
+        },
+        {
+          "id": "st_ip",
+          "type": "statusRow",
+          "x": 52,
+          "y": 58,
+          "w": 124,
+          "color": "CLR_PEACH",
+          "label": "IP",
+          "value": "192.168.1.36"
+        },
+        {
+          "id": "st_signal",
+          "type": "statusRow",
+          "x": 52,
+          "y": 74,
+          "w": 102,
+          "color": "CLR_PEACH",
+          "label": "Signal",
+          "value": "-58 dBm"
+        },
+        {
+          "id": "st_bars",
+          "type": "signalBars",
+          "x": 158,
+          "y": 75,
+          "rssi": -58
+        },
+        {
+          "id": "st_sec_api",
+          "type": "sectionHeader",
+          "x": 52,
+          "y": 96,
+          "color": "CLR_LAVENDER",
+          "text": "API"
+        },
+        {
+          "id": "st_api",
+          "type": "statusRow",
+          "x": 52,
+          "y": 112,
+          "w": 124,
+          "color": "CLR_STATUS_OK",
+          "label": "Status",
+          "value": "OK"
+        },
+        {
+          "id": "st_fetched",
+          "type": "statusRow",
+          "x": 52,
+          "y": 128,
+          "w": 124,
+          "color": "CLR_PEACH",
+          "label": "Fetched",
+          "value": "2m ago"
+        },
+        {
+          "id": "st_div",
+          "type": "vline",
+          "x": 182,
+          "y": 30,
+          "h": 122,
+          "color": "CLR_AMBER"
+        },
+        {
+          "id": "st_sec_sys",
+          "type": "sectionHeader",
+          "x": 188,
+          "y": 26,
+          "color": "CLR_BLUE",
+          "text": "SYSTEM"
+        },
+        {
+          "id": "st_heap",
+          "type": "statusRow",
+          "x": 188,
+          "y": 42,
+          "w": 126,
+          "color": "CLR_PEACH",
+          "label": "Heap",
+          "value": "201 KB"
+        },
+        {
+          "id": "st_psram",
+          "type": "statusRow",
+          "x": 188,
+          "y": 58,
+          "w": 126,
+          "color": "CLR_PEACH",
+          "label": "PSRAM",
+          "value": "8068 KB"
+        },
+        {
+          "id": "st_uptime",
+          "type": "statusRow",
+          "x": 188,
+          "y": 74,
+          "w": 126,
+          "color": "CLR_PEACH",
+          "label": "Uptime",
+          "value": "0h 8m"
+        },
+        {
+          "id": "st_sec_fw",
+          "type": "sectionHeader",
+          "x": 188,
+          "y": 96,
+          "color": "CLR_SALMON",
+          "text": "FIRMWARE"
+        },
+        {
+          "id": "st_fw_ver",
+          "type": "text",
+          "x": 188,
+          "y": 112,
+          "font": "sm",
+          "color": "CLR_TEXT_DIM",
+          "text": "LCARS v2.0",
+          "datum": "TL"
+        },
+        {
+          "id": "st_board",
+          "type": "text",
+          "x": 188,
+          "y": 128,
+          "font": "sm",
+          "color": "CLR_TEXT_DIM",
+          "text": "Waveshare 1.47",
+          "datum": "TL"
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "name": "Page 8",
+      "title": "NEW PAGE",
+      "elements": [
+        {
+          "id": "screen_title_7",
+          "type": "screenTitle",
+          "x": 52,
+          "y": 1,
+          "font": "md",
+          "color": "CLR_AMBER",
+          "text": "NEW PAGE",
+          "datum": "ML"
+        },
+        {
+          "id": "frame_claude",
+          "type": "claudeText",
+          "x": 294,
+          "y": 8,
+          "font": "md",
+          "color": "CLR_PEACH",
+          "text": "CLAUDE"
+        },
+        {
+          "id": "frame_page",
+          "type": "pageChip",
+          "x": 52,
+          "y": 157,
+          "w": 28,
+          "h": 14,
+          "color": "CLR_PEACH"
+        },
+        {
+          "id": "frame_signal_bars",
+          "type": "frameSignalBars",
+          "x": 176,
+          "y": 158
+        },
+        {
+          "id": "frame_countdown",
+          "type": "countdownPill",
+          "x": 200,
+          "y": 157,
+          "w": 120,
+          "h": 14,
+          "color": "CLR_AMBER"
+        }
+      ]
+    }
+  ],
+  "customElements": [
+    {
+      "screen": 0,
+      "elements": [
+        {
+          "id": "custom_signalLabel_15",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        },
+        {
+          "id": "custom_vline_18",
+          "type": "vline",
+          "x": 180,
+          "y": 24,
+          "h": 120,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "screen": 1,
+      "elements": [
+        {
+          "id": "custom_signalLabel_8",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        },
+        {
+          "id": "custom_vline_19",
+          "type": "vline",
+          "x": 180,
+          "y": 24,
+          "h": 120,
+          "color": "CLR_AMBER"
+        }
+      ]
+    },
+    {
+      "screen": 2,
+      "elements": [
+        {
+          "id": "custom_signalLabel_9",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        }
+      ]
+    },
+    {
+      "screen": 3,
+      "elements": [
+        {
+          "id": "custom_signalLabel_10",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        }
+      ]
+    },
+    {
+      "screen": 4,
+      "elements": [
+        {
+          "id": "custom_signalLabel_11",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        }
+      ]
+    },
+    {
+      "screen": 5,
+      "elements": [
+        {
+          "id": "custom_signalLabel_12",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        }
+      ]
+    },
+    {
+      "screen": 6,
+      "elements": [
+        {
+          "id": "custom_signalLabel_13",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        }
+      ]
+    },
+    {
+      "screen": 7,
+      "elements": [
+        {
+          "id": "custom_signalLabel_14",
+          "type": "signalLabel",
+          "x": 172,
+          "y": 164,
+          "font": "16",
+          "color": "CLR_TEXT_DIM",
+          "text": "SIGNAL"
+        }
+      ]
+    }
+  ],
+  "deletedElementIds": [
+    "1:cai_opus",
+    "1:cai_sonnet",
+    "1:cai_extra",
+    "0:frame_signal_text",
+    "2:frame_signal_text",
+    "3:frame_signal_text",
+    "4:frame_signal_text",
+    "5:frame_signal_text",
+    "6:frame_signal_text",
+    "7:frame_signal_text",
+    "1:frame_signal_text",
+    "0:div_main",
+    "0:cai_opus",
+    "0:cai_sonnet",
+    "0:cai_extra",
+    "0:frame_claude"
+  ],
+  "v2": {
+    "screens": [
+      {
+        "name": "Claude.ai",
+        "title": "CLAUDE.AI",
+        "elements": [
+          {
+            "id": "screen_title_0",
+            "type": "screenTitle",
+            "x": 85,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "CLAUDE.AI",
+            "datum": "ML"
+          },
+          {
+            "id": "v2_5h_clock",
+            "type": "text",
+            "x": 92,
+            "y": 20,
+            "font": "24",
+            "color": "CLR_TEXT_BRIGHT",
+            "text": "2:22:00",
+            "datum": "TC"
+          },
+          {
+            "id": "v2_cai_5h",
+            "type": "donutGauge",
+            "x": 95,
+            "y": 103,
+            "color": "CLR_AMBER",
+            "pct": 58,
+            "r": 20,
+            "thickness": 5,
+            "scale": 2,
+            "pctFont": "16",
+            "pctColor": "CLR_TEXT_BRIGHT"
+          },
+          {
+            "id": "v2_5h_bar",
+            "type": "countdownBar",
+            "x": 149,
+            "y": 24,
+            "w": 10,
+            "h": 120,
+            "color": "CLR_AMBER",
+            "pct": 0.47333333333333333
+          },
+          {
+            "id": "v2_div",
+            "type": "vline",
+            "x": 171,
+            "y": 24,
+            "h": 120,
+            "color": "CLR_AMBER"
+          },
+          {
+            "id": "v2_7d_clock",
+            "type": "text",
+            "x": 239,
+            "y": 20,
+            "font": "24",
+            "color": "CLR_PEACH",
+            "text": "7d 0h0m",
+            "datum": "TC"
+          },
+          {
+            "id": "v2_cai_7d",
+            "type": "donutGauge",
+            "x": 244,
+            "y": 104,
+            "color": "CLR_LAVENDER",
+            "pct": 45,
+            "r": 20,
+            "thickness": 5,
+            "scale": 2,
+            "pctFont": "16",
+            "pctColor": "CLR_TEXT_BRIGHT"
+          },
+          {
+            "id": "v2_7d_bar",
+            "type": "countdownBar",
+            "x": 304,
+            "y": 24,
+            "w": 10,
+            "h": 120,
+            "color": "CLR_LAVENDER",
+            "pct": 1
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 54,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_text",
+            "type": "signalLabel",
+            "x": 171,
+            "y": 164,
+            "font": "14",
+            "color": "CLR_AMBER",
+            "text": "SIGNAL"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Status",
+        "title": "SYSTEM STATUS",
+        "elements": [
+          {
+            "id": "screen_title_1",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "SYSTEM STATUS",
+            "datum": "ML"
+          },
+          {
+            "id": "v2_st_wifi",
+            "type": "statusRow",
+            "x": 54,
+            "y": 22,
+            "w": 264,
+            "color": "CLR_STATUS_OK",
+            "label": "WIFI",
+            "value": "CONNECTED"
+          },
+          {
+            "id": "v2_st_rssi",
+            "type": "statusRow",
+            "x": 54,
+            "y": 37,
+            "w": 264,
+            "color": "CLR_STATUS_OK",
+            "label": "SIGNAL",
+            "value": "-42 DBM"
+          },
+          {
+            "id": "v2_st_ip",
+            "type": "statusRow",
+            "x": 54,
+            "y": 52,
+            "w": 264,
+            "color": "CLR_AMBER",
+            "label": "IP",
+            "value": "192.168.1.42"
+          },
+          {
+            "id": "v2_st_uptime",
+            "type": "statusRow",
+            "x": 54,
+            "y": 67,
+            "w": 264,
+            "color": "CLR_AMBER",
+            "label": "UPTIME",
+            "value": "2H 14M"
+          },
+          {
+            "id": "v2_st_refresh",
+            "type": "statusRow",
+            "x": 54,
+            "y": 82,
+            "w": 264,
+            "color": "CLR_AMBER",
+            "label": "REFRESH IN",
+            "value": "247s"
+          },
+          {
+            "id": "v2_st_fw",
+            "type": "statusRow",
+            "x": 54,
+            "y": 97,
+            "w": 264,
+            "color": "CLR_TEXT_DIM",
+            "label": "FIRMWARE",
+            "value": "v2.0.0"
+          },
+          {
+            "id": "v2_st_sep",
+            "type": "hline",
+            "x": 54,
+            "y": 114,
+            "w": 264,
+            "color": "CLR_TEXT_DIM",
+            "thickness": 1
+          },
+          {
+            "id": "v2_st_cascade",
+            "type": "dataCascade",
+            "x": 54,
+            "y": 117,
+            "w": 264,
+            "h": 37,
+            "color": "CLR_AMBER"
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 54,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_text",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "builtin",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Setup",
+        "title": "",
+        "elements": [
+          {
+            "id": "v2_setup_title",
+            "type": "text",
+            "x": 186,
+            "y": 32,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "CLAUDEGAUGE SETUP",
+            "datum": "TC"
+          },
+          {
+            "id": "v2_setup_instr",
+            "type": "text",
+            "x": 186,
+            "y": 62,
+            "font": "sm",
+            "color": "CLR_SKY",
+            "text": "CONNECT TO WIFI:",
+            "datum": "TC"
+          },
+          {
+            "id": "v2_setup_ap",
+            "type": "text",
+            "x": 186,
+            "y": 80,
+            "font": "lg",
+            "color": "CLR_AMBER",
+            "text": "ClaudeGauge-A1B2",
+            "datum": "TC"
+          },
+          {
+            "id": "v2_setup_open",
+            "type": "text",
+            "x": 186,
+            "y": 116,
+            "font": "sm",
+            "color": "CLR_SKY",
+            "text": "THEN OPEN:",
+            "datum": "TC"
+          },
+          {
+            "id": "v2_setup_url",
+            "type": "text",
+            "x": 186,
+            "y": 134,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "HTTP://192.168.4.1",
+            "datum": "TC"
+          }
+        ]
+      }
+    ],
+    "customElements": [
+      {
+        "screen": 0,
+        "elements": [
+          {
+            "id": "custom_hline_22",
+            "type": "hline",
+            "x": 24,
+            "y": 0,
+            "w": 56,
+            "color": "CLR_AMBER",
+            "thickness": 18
+          }
+        ]
+      },
+      {
+        "screen": 1,
+        "elements": []
+      },
+      {
+        "screen": 2,
+        "elements": []
+      }
+    ],
+    "deletedElementIds": [
+      "0:v2_opus_bar",
+      "0:v2_opus_row",
+      "0:v2_sonnet_row",
+      "0:v2_sonnet_bar",
+      "0:v2_sep2",
+      "0:v2_extra_row",
+      "0:v2_extra_bar",
+      "0:v2_sep1",
+      "0:frame_claude",
+      "0:frame_spark"
+    ]
+  },
+  "v1": {
+    "screens": [
+      {
+        "name": "Claude.ai",
+        "title": "CLAUDE.AI USAGE",
+        "elements": [
+          {
+            "id": "screen_title_0",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 0,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "CLAUDE.AI USAGE",
+            "datum": "ML"
+          },
+          {
+            "id": "cai_5h",
+            "type": "donutGauge",
+            "x": 96,
+            "y": 104,
+            "color": "CLR_TEXT_BRIGHT",
+            "pct": 58,
+            "r": 38,
+            "thickness": 7,
+            "pctFont": "md",
+            "pctColor": "CLR_TEXT_BRIGHT"
+          },
+          {
+            "id": "cai_7d",
+            "type": "donutGauge",
+            "x": 240,
+            "y": 104,
+            "color": "CLR_PEACH",
+            "pct": 45,
+            "r": 38,
+            "thickness": 7,
+            "pctFont": "md",
+            "pctColor": "CLR_TEXT_BRIGHT"
+          },
+          {
+            "id": "cai_5h_label",
+            "type": "text",
+            "x": 96,
+            "y": 24,
+            "font": "26",
+            "color": "CLR_TEXT_BRIGHT",
+            "text": "2:22:00",
+            "datum": "TC"
+          },
+          {
+            "id": "cai_7d_label",
+            "type": "text",
+            "x": 241,
+            "y": 24,
+            "font": "26",
+            "color": "CLR_PEACH",
+            "text": "7d 0h0m",
+            "datum": "TC"
+          },
+          {
+            "id": "cai_5h_cd",
+            "type": "countdownBar",
+            "x": 152,
+            "y": 24,
+            "w": 12,
+            "h": 120,
+            "color": "CLR_TEXT_BRIGHT",
+            "pct": 0.47333333333333333
+          },
+          {
+            "id": "cai_7d_cd",
+            "type": "countdownBar",
+            "x": 296,
+            "y": 24,
+            "w": 12,
+            "h": 120,
+            "color": "CLR_PEACH",
+            "pct": 1
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Overview",
+        "title": "USAGE OVERVIEW",
+        "elements": [
+          {
+            "id": "screen_title_1",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "USAGE OVERVIEW",
+            "datum": "ML"
+          },
+          {
+            "id": "lbl_today",
+            "type": "text",
+            "x": 52,
+            "y": 26,
+            "font": "sm",
+            "color": "CLR_AMBER",
+            "text": "TODAY",
+            "datum": "TL"
+          },
+          {
+            "id": "cost_today",
+            "type": "cost",
+            "x": 52,
+            "y": 38,
+            "font": "xl",
+            "color": "CLR_PEACH",
+            "value": 0
+          },
+          {
+            "id": "lbl_month",
+            "type": "text",
+            "x": 52,
+            "y": 88,
+            "font": "sm",
+            "color": "CLR_AMBER",
+            "text": "THIS MONTH",
+            "datum": "TL"
+          },
+          {
+            "id": "cost_month",
+            "type": "cost",
+            "x": 52,
+            "y": 104,
+            "font": "lg",
+            "color": "CLR_SKY",
+            "value": 51.27
+          },
+          {
+            "id": "div_main",
+            "type": "vline",
+            "x": 181,
+            "y": 30,
+            "h": 134,
+            "color": "CLR_AMBER"
+          },
+          {
+            "id": "lbl_breakdown",
+            "type": "text",
+            "x": 188,
+            "y": 26,
+            "font": "sm",
+            "color": "CLR_AMBER",
+            "text": "COST BREAKDOWN",
+            "datum": "TL"
+          },
+          {
+            "id": "cost_model_0",
+            "type": "costRow",
+            "x": 188,
+            "y": 44,
+            "w": 126,
+            "color": "CLR_AMBER",
+            "name": "opus-4",
+            "cost": 2.7119999999999997,
+            "maxCost": 2.7119999999999997
+          },
+          {
+            "id": "cost_model_1",
+            "type": "costRow",
+            "x": 188,
+            "y": 69,
+            "w": 126,
+            "color": "CLR_LAVENDER",
+            "name": "sonnet-4",
+            "cost": 1.3559999999999999,
+            "maxCost": 2.7119999999999997
+          },
+          {
+            "id": "cost_model_2",
+            "type": "costRow",
+            "x": 188,
+            "y": 94,
+            "w": 126,
+            "color": "CLR_BLUE",
+            "name": "haiku-3.5",
+            "cost": 0.45199999999999996,
+            "maxCost": 2.7119999999999997
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Models",
+        "title": "TODAY MODEL ANALYSIS",
+        "elements": [
+          {
+            "id": "screen_title_2",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "TODAY MODEL ANALYSIS",
+            "datum": "ML"
+          },
+          {
+            "id": "tm_model_0",
+            "type": "modelRow",
+            "x": 52,
+            "y": 26,
+            "w": 264,
+            "model": {
+              "name": "opus-4",
+              "inp": 250000,
+              "out": 80000,
+              "color": "CLR_AMBER"
+            },
+            "maxTotal": 330000
+          },
+          {
+            "id": "tm_model_1",
+            "type": "modelRow",
+            "x": 52,
+            "y": 50,
+            "w": 264,
+            "model": {
+              "name": "sonnet-4",
+              "inp": 180000,
+              "out": 60000,
+              "color": "CLR_LAVENDER"
+            },
+            "maxTotal": 330000
+          },
+          {
+            "id": "tm_model_2",
+            "type": "modelRow",
+            "x": 52,
+            "y": 74,
+            "w": 264,
+            "model": {
+              "name": "haiku-3.5",
+              "inp": 50000,
+              "out": 20000,
+              "color": "CLR_BLUE"
+            },
+            "maxTotal": 330000
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Monthly Models",
+        "title": "MONTHLY MODELS",
+        "elements": [
+          {
+            "id": "screen_title_3",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "MONTHLY MODELS",
+            "datum": "ML"
+          },
+          {
+            "id": "mm_model_0",
+            "type": "modelRow",
+            "x": 52,
+            "y": 26,
+            "w": 264,
+            "model": {
+              "name": "opus-4",
+              "inp": 3750000,
+              "out": 1200000,
+              "color": "CLR_AMBER"
+            },
+            "maxTotal": 4950000
+          },
+          {
+            "id": "mm_model_1",
+            "type": "modelRow",
+            "x": 52,
+            "y": 50,
+            "w": 264,
+            "model": {
+              "name": "sonnet-4",
+              "inp": 2700000,
+              "out": 900000,
+              "color": "CLR_LAVENDER"
+            },
+            "maxTotal": 4950000
+          },
+          {
+            "id": "mm_model_2",
+            "type": "modelRow",
+            "x": 52,
+            "y": 74,
+            "w": 264,
+            "model": {
+              "name": "haiku-3.5",
+              "inp": 750000,
+              "out": 300000,
+              "color": "CLR_BLUE"
+            },
+            "maxTotal": 4950000
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Code",
+        "title": "TODAY CODE ANALYTICS",
+        "elements": [
+          {
+            "id": "screen_title_4",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "TODAY CODE ANALYTICS",
+            "datum": "ML"
+          },
+          {
+            "id": "tc_sec_sessions",
+            "type": "sectionHeader",
+            "x": 52,
+            "y": 26,
+            "color": "CLR_AMBER",
+            "text": "SESSIONS"
+          },
+          {
+            "id": "tc_val_sessions",
+            "type": "text",
+            "x": 176,
+            "y": 26,
+            "font": "md",
+            "color": "CLR_TEXT_BRIGHT",
+            "text": "12",
+            "datum": "TR"
+          },
+          {
+            "id": "tc_sec_lines",
+            "type": "sectionHeader",
+            "x": 52,
+            "y": 50,
+            "color": "CLR_AMBER",
+            "text": "LINES"
+          },
+          {
+            "id": "tc_val_lines",
+            "type": "text",
+            "x": 176,
+            "y": 66,
+            "font": "sm",
+            "color": "CLR_SKY",
+            "text": "+340 / -120",
+            "datum": "TR"
+          },
+          {
+            "id": "tc_row_commits",
+            "type": "statusRow",
+            "x": 52,
+            "y": 84,
+            "w": 124,
+            "color": "CLR_PEACH",
+            "label": "COMMITS",
+            "value": "8"
+          },
+          {
+            "id": "tc_row_prs",
+            "type": "statusRow",
+            "x": 52,
+            "y": 102,
+            "w": 124,
+            "color": "CLR_PEACH",
+            "label": "PULL REQS",
+            "value": "3"
+          },
+          {
+            "id": "tc_lbl_cost",
+            "type": "text",
+            "x": 52,
+            "y": 120,
+            "font": "sm",
+            "color": "CLR_AMBER",
+            "text": "EST. COST",
+            "datum": "TL"
+          },
+          {
+            "id": "tc_val_cost",
+            "type": "text",
+            "x": 176,
+            "y": 120,
+            "font": "sm",
+            "color": "CLR_SKY",
+            "text": "$4.52",
+            "datum": "TR"
+          },
+          {
+            "id": "tc_div",
+            "type": "vline",
+            "x": 182,
+            "y": 30,
+            "h": 122,
+            "color": "CLR_AMBER"
+          },
+          {
+            "id": "tc_sec_accept",
+            "type": "sectionHeader",
+            "x": 188,
+            "y": 26,
+            "color": "CLR_AMBER",
+            "text": "TOOL ACCEPTANCE"
+          },
+          {
+            "id": "tc_bar_edit",
+            "type": "acceptBar",
+            "x": 188,
+            "y": 44,
+            "w": 126,
+            "color": "CLR_SKY",
+            "label": "EDIT",
+            "accepted": 85,
+            "rejected": 15
+          },
+          {
+            "id": "tc_bar_write",
+            "type": "acceptBar",
+            "x": 188,
+            "y": 62,
+            "w": 126,
+            "color": "CLR_LAVENDER",
+            "label": "WRITE",
+            "accepted": 70,
+            "rejected": 30
+          },
+          {
+            "id": "tc_hline",
+            "type": "hline",
+            "x": 188,
+            "y": 82,
+            "w": 126,
+            "color": "CLR_TEXT_DIM"
+          },
+          {
+            "id": "tc_sec_users",
+            "type": "sectionHeader",
+            "x": 188,
+            "y": 98,
+            "color": "CLR_AMBER",
+            "text": "USERS"
+          },
+          {
+            "id": "tc_row_user",
+            "type": "statusRow",
+            "x": 188,
+            "y": 116,
+            "w": 126,
+            "color": "CLR_PEACH",
+            "label": "user@exam...",
+            "value": "$4.52"
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Monthly Code",
+        "title": "MONTHLY CODE",
+        "elements": [
+          {
+            "id": "screen_title_5",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "MONTHLY CODE",
+            "datum": "ML"
+          },
+          {
+            "id": "mc_sec_sessions",
+            "type": "sectionHeader",
+            "x": 52,
+            "y": 26,
+            "color": "CLR_AMBER",
+            "text": "SESSIONS"
+          },
+          {
+            "id": "mc_val_sessions",
+            "type": "text",
+            "x": 176,
+            "y": 26,
+            "font": "md",
+            "color": "CLR_TEXT_BRIGHT",
+            "text": "48",
+            "datum": "TR"
+          },
+          {
+            "id": "mc_sec_lines",
+            "type": "sectionHeader",
+            "x": 52,
+            "y": 50,
+            "color": "CLR_AMBER",
+            "text": "LINES"
+          },
+          {
+            "id": "mc_val_lines",
+            "type": "text",
+            "x": 176,
+            "y": 66,
+            "font": "sm",
+            "color": "CLR_SKY",
+            "text": "+1360 / -480",
+            "datum": "TR"
+          },
+          {
+            "id": "mc_row_commits",
+            "type": "statusRow",
+            "x": 52,
+            "y": 84,
+            "w": 124,
+            "color": "CLR_PEACH",
+            "label": "COMMITS",
+            "value": "32"
+          },
+          {
+            "id": "mc_row_prs",
+            "type": "statusRow",
+            "x": 52,
+            "y": 102,
+            "w": 124,
+            "color": "CLR_PEACH",
+            "label": "PULL REQS",
+            "value": "12"
+          },
+          {
+            "id": "mc_lbl_cost",
+            "type": "text",
+            "x": 52,
+            "y": 120,
+            "font": "sm",
+            "color": "CLR_AMBER",
+            "text": "EST. COST",
+            "datum": "TL"
+          },
+          {
+            "id": "mc_val_cost",
+            "type": "text",
+            "x": 176,
+            "y": 120,
+            "font": "sm",
+            "color": "CLR_SKY",
+            "text": "$18.08",
+            "datum": "TR"
+          },
+          {
+            "id": "mc_div",
+            "type": "vline",
+            "x": 182,
+            "y": 30,
+            "h": 122,
+            "color": "CLR_AMBER"
+          },
+          {
+            "id": "mc_sec_accept",
+            "type": "sectionHeader",
+            "x": 188,
+            "y": 26,
+            "color": "CLR_AMBER",
+            "text": "TOOL ACCEPTANCE"
+          },
+          {
+            "id": "mc_bar_edit",
+            "type": "acceptBar",
+            "x": 188,
+            "y": 44,
+            "w": 126,
+            "color": "CLR_SKY",
+            "label": "EDIT",
+            "accepted": 85,
+            "rejected": 15
+          },
+          {
+            "id": "mc_bar_write",
+            "type": "acceptBar",
+            "x": 188,
+            "y": 62,
+            "w": 126,
+            "color": "CLR_LAVENDER",
+            "label": "WRITE",
+            "accepted": 70,
+            "rejected": 30
+          },
+          {
+            "id": "mc_hline",
+            "type": "hline",
+            "x": 188,
+            "y": 82,
+            "w": 126,
+            "color": "CLR_TEXT_DIM"
+          },
+          {
+            "id": "mc_sec_users",
+            "type": "sectionHeader",
+            "x": 188,
+            "y": 98,
+            "color": "CLR_AMBER",
+            "text": "USERS"
+          },
+          {
+            "id": "mc_row_user",
+            "type": "statusRow",
+            "x": 188,
+            "y": 116,
+            "w": 126,
+            "color": "CLR_PEACH",
+            "label": "user@exam...",
+            "value": "$18.08"
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Status",
+        "title": "SYSTEM STATUS",
+        "elements": [
+          {
+            "id": "screen_title_6",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "SYSTEM STATUS",
+            "datum": "ML"
+          },
+          {
+            "id": "st_sec_net",
+            "type": "sectionHeader",
+            "x": 52,
+            "y": 26,
+            "color": "CLR_AMBER",
+            "text": "NETWORK"
+          },
+          {
+            "id": "st_wifi",
+            "type": "statusRow",
+            "x": 52,
+            "y": 42,
+            "w": 124,
+            "color": "CLR_STATUS_OK",
+            "label": "WiFi",
+            "value": "CONNECTED"
+          },
+          {
+            "id": "st_ip",
+            "type": "statusRow",
+            "x": 52,
+            "y": 58,
+            "w": 124,
+            "color": "CLR_PEACH",
+            "label": "IP",
+            "value": "192.168.1.36"
+          },
+          {
+            "id": "st_signal",
+            "type": "statusRow",
+            "x": 52,
+            "y": 74,
+            "w": 102,
+            "color": "CLR_PEACH",
+            "label": "Signal",
+            "value": "-58 dBm"
+          },
+          {
+            "id": "st_bars",
+            "type": "signalBars",
+            "x": 158,
+            "y": 75,
+            "rssi": -58
+          },
+          {
+            "id": "st_sec_api",
+            "type": "sectionHeader",
+            "x": 52,
+            "y": 96,
+            "color": "CLR_LAVENDER",
+            "text": "API"
+          },
+          {
+            "id": "st_api",
+            "type": "statusRow",
+            "x": 52,
+            "y": 112,
+            "w": 124,
+            "color": "CLR_STATUS_OK",
+            "label": "Status",
+            "value": "OK"
+          },
+          {
+            "id": "st_fetched",
+            "type": "statusRow",
+            "x": 52,
+            "y": 128,
+            "w": 124,
+            "color": "CLR_PEACH",
+            "label": "Fetched",
+            "value": "2m ago"
+          },
+          {
+            "id": "st_div",
+            "type": "vline",
+            "x": 182,
+            "y": 30,
+            "h": 122,
+            "color": "CLR_AMBER"
+          },
+          {
+            "id": "st_sec_sys",
+            "type": "sectionHeader",
+            "x": 188,
+            "y": 26,
+            "color": "CLR_BLUE",
+            "text": "SYSTEM"
+          },
+          {
+            "id": "st_heap",
+            "type": "statusRow",
+            "x": 188,
+            "y": 42,
+            "w": 126,
+            "color": "CLR_PEACH",
+            "label": "Heap",
+            "value": "201 KB"
+          },
+          {
+            "id": "st_psram",
+            "type": "statusRow",
+            "x": 188,
+            "y": 58,
+            "w": 126,
+            "color": "CLR_PEACH",
+            "label": "PSRAM",
+            "value": "8068 KB"
+          },
+          {
+            "id": "st_uptime",
+            "type": "statusRow",
+            "x": 188,
+            "y": 74,
+            "w": 126,
+            "color": "CLR_PEACH",
+            "label": "Uptime",
+            "value": "0h 8m"
+          },
+          {
+            "id": "st_sec_fw",
+            "type": "sectionHeader",
+            "x": 188,
+            "y": 96,
+            "color": "CLR_SALMON",
+            "text": "FIRMWARE"
+          },
+          {
+            "id": "st_fw_ver",
+            "type": "text",
+            "x": 188,
+            "y": 112,
+            "font": "sm",
+            "color": "CLR_TEXT_DIM",
+            "text": "LCARS v2.0",
+            "datum": "TL"
+          },
+          {
+            "id": "st_board",
+            "type": "text",
+            "x": 188,
+            "y": 128,
+            "font": "sm",
+            "color": "CLR_TEXT_DIM",
+            "text": "Waveshare 1.47",
+            "datum": "TL"
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "name": "Page 8",
+        "title": "NEW PAGE",
+        "elements": [
+          {
+            "id": "screen_title_7",
+            "type": "screenTitle",
+            "x": 52,
+            "y": 1,
+            "font": "md",
+            "color": "CLR_AMBER",
+            "text": "NEW PAGE",
+            "datum": "ML"
+          },
+          {
+            "id": "frame_claude",
+            "type": "claudeText",
+            "x": 294,
+            "y": 8,
+            "font": "md",
+            "color": "CLR_PEACH",
+            "text": "CLAUDE"
+          },
+          {
+            "id": "frame_page",
+            "type": "pageChip",
+            "x": 52,
+            "y": 157,
+            "w": 28,
+            "h": 14,
+            "color": "CLR_PEACH"
+          },
+          {
+            "id": "frame_signal_bars",
+            "type": "frameSignalBars",
+            "x": 176,
+            "y": 158
+          },
+          {
+            "id": "frame_countdown",
+            "type": "countdownPill",
+            "x": 200,
+            "y": 157,
+            "w": 120,
+            "h": 14,
+            "color": "CLR_AMBER"
+          }
+        ]
+      }
+    ],
+    "customElements": [
+      {
+        "screen": 0,
+        "elements": [
+          {
+            "id": "custom_signalLabel_15",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          },
+          {
+            "id": "custom_vline_18",
+            "type": "vline",
+            "x": 180,
+            "y": 24,
+            "h": 120,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "screen": 1,
+        "elements": [
+          {
+            "id": "custom_signalLabel_8",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          },
+          {
+            "id": "custom_vline_19",
+            "type": "vline",
+            "x": 180,
+            "y": 24,
+            "h": 120,
+            "color": "CLR_AMBER"
+          }
+        ]
+      },
+      {
+        "screen": 2,
+        "elements": [
+          {
+            "id": "custom_signalLabel_9",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          }
+        ]
+      },
+      {
+        "screen": 3,
+        "elements": [
+          {
+            "id": "custom_signalLabel_10",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          }
+        ]
+      },
+      {
+        "screen": 4,
+        "elements": [
+          {
+            "id": "custom_signalLabel_11",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          }
+        ]
+      },
+      {
+        "screen": 5,
+        "elements": [
+          {
+            "id": "custom_signalLabel_12",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          }
+        ]
+      },
+      {
+        "screen": 6,
+        "elements": [
+          {
+            "id": "custom_signalLabel_13",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          }
+        ]
+      },
+      {
+        "screen": 7,
+        "elements": [
+          {
+            "id": "custom_signalLabel_14",
+            "type": "signalLabel",
+            "x": 172,
+            "y": 164,
+            "font": "16",
+            "color": "CLR_TEXT_DIM",
+            "text": "SIGNAL"
+          }
+        ]
+      }
+    ],
+    "deletedElementIds": [
+      "1:cai_opus",
+      "1:cai_sonnet",
+      "1:cai_extra",
+      "0:frame_signal_text",
+      "2:frame_signal_text",
+      "3:frame_signal_text",
+      "4:frame_signal_text",
+      "5:frame_signal_text",
+      "6:frame_signal_text",
+      "7:frame_signal_text",
+      "1:frame_signal_text",
+      "0:div_main",
+      "0:cai_opus",
+      "0:cai_sonnet",
+      "0:cai_extra",
+      "0:frame_claude"
+    ]
+  }
+}
