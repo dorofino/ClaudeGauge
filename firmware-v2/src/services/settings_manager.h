@@ -1,15 +1,29 @@
 #pragma once
 
 #include <Arduino.h>
+#include <vector>
+
+struct WiFiNetwork {
+    String ssid;
+    String password;
+};
 
 class SettingsManager {
 public:
     void begin();
 
-    // WiFi
+    // WiFi — single-network accessors kept for status display (return the
+    // first/most-recently-connected saved network)
     String getWiFiSSID();
     String getWiFiPassword();
     void setWiFi(const String& ssid, const String& password);
+
+    // WiFi — multi-network storage (up to WIFI_MAX_NETWORKS)
+    std::vector<WiFiNetwork> getWiFiNetworks();
+    // Adds a network, or updates the password if the SSID is already saved.
+    // Evicts the oldest entry when the list is full.
+    void addWiFiNetwork(const String& ssid, const String& password);
+    void removeWiFiNetwork(const String& ssid);
 
     // API Key
     String getApiKey();
@@ -37,8 +51,9 @@ public:
 
 private:
     static constexpr const char* NVS_NAMESPACE = "claudemon";
-    static constexpr const char* KEY_SSID      = "wifi_ssid";
-    static constexpr const char* KEY_PASS      = "wifi_pass";
+    static constexpr const char* KEY_SSID      = "wifi_ssid";   // Legacy single-network
+    static constexpr const char* KEY_PASS      = "wifi_pass";   // Legacy single-network
+    static constexpr const char* KEY_NETS      = "wifi_nets";   // JSON array of {s,p}
     static constexpr const char* KEY_API       = "api_key";
     static constexpr const char* KEY_SESSION   = "session_key";
     static constexpr const char* KEY_PROXY     = "proxy_host";   // Legacy

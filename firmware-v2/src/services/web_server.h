@@ -35,6 +35,7 @@ private:
 
     void handleRoot();
     void handleSaveWiFi();
+    void handleDeleteWiFi();
     void handleSaveApiKey();
     void handleSaveSessionKey();
     void handleSaveProxy();

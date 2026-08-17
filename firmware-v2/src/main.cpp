@@ -195,10 +195,7 @@ void enterSetupMode() {
 void connectAndFetch() {
     Serial.println("[CG] Connecting to WiFi...");
 
-    String ssid = settingsMgr.getWiFiSSID();
-    String pass = settingsMgr.getWiFiPassword();
-
-    wifiMgr.connect(ssid, pass);
+    wifiMgr.connectAny(settingsMgr.getWiFiNetworks());
 
     if (!wifiMgr.isConnected()) {
         Serial.println("[CG] WiFi failed, entering setup");

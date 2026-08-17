@@ -12,6 +12,9 @@
 // WiFi
 // ============================================================
 #define WIFI_TIMEOUT_MS 15000
+#define WIFI_MAX_NETWORKS 3
+#define STR_(x) #x
+#define STR(x) STR_(x)
 
 // ============================================================
 // Refresh Settings
