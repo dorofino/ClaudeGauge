@@ -200,8 +200,8 @@ void UIWidgets::drawLcarsFrame(GfxCanvas& spr, const char* title,
     spr.fillRect(SW, SCR_H - BH, R, BH, CLR_TAN);
     fillQuarterCircle(spr, SW, SCR_H - BH, R, CLR_BG, 1);
 
-    barY = SCR_H - BH + 1;
-    barH = BH - 2;
+    const int16_t barY = SCR_H - BH + 1;
+    const int16_t barH = BH - 2;
 
     // Page chip
     char pageBuf[8];
