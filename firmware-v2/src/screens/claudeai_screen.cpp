@@ -122,12 +122,14 @@ void ClaudeAiScreen::_formatCountdown(uint32_t resets_at, char* buf, size_t len)
     uint32_t mins = (remaining % 3600) / 60;
     uint32_t secs = remaining % 60;
 
+    // Each numeric field is zero-padded to a fixed width so the text
+    // doesn't change size (and re-center) as the countdown ticks down.
     if (days > 0) {
-        snprintf(buf, len, "%lud %luh%lum", (unsigned long)days, (unsigned long)hours, (unsigned long)mins);
+        snprintf(buf, len, "%lud %02luh%02lum", (unsigned long)days, (unsigned long)hours, (unsigned long)mins);
     } else if (hours > 0) {
-        snprintf(buf, len, "%lu:%02lu:%02lu", (unsigned long)hours, (unsigned long)mins, (unsigned long)secs);
+        snprintf(buf, len, "%02lu:%02lu:%02lu", (unsigned long)hours, (unsigned long)mins, (unsigned long)secs);
     } else {
-        snprintf(buf, len, "%lu:%02lu", (unsigned long)mins, (unsigned long)secs);
+        snprintf(buf, len, "%02lu:%02lu", (unsigned long)mins, (unsigned long)secs);
     }
 }
 
