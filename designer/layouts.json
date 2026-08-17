@@ -1217,7 +1217,7 @@
           {
             "id": "v2_5h_clock",
             "type": "text",
-            "x": 96,
+            "x": 116,
             "y": 24,
             "font": "lg",
             "color": "CLR_TEXT_BRIGHT",
@@ -1227,7 +1227,7 @@
           {
             "id": "v2_cai_5h",
             "type": "donutGauge",
-            "x": 96,
+            "x": 116,
             "y": 100,
             "color": "CLR_AMBER",
             "pct": 58,
@@ -1239,7 +1239,7 @@
           {
             "id": "v2_5h_bar",
             "type": "countdownBar",
-            "x": 140,
+            "x": 58,
             "y": 24,
             "w": 10,
             "h": 120,
@@ -1249,7 +1249,7 @@
           {
             "id": "v2_div",
             "type": "vline",
-            "x": 172,
+            "x": 186,
             "y": 24,
             "h": 120,
             "color": "CLR_AMBER"
@@ -1257,7 +1257,7 @@
           {
             "id": "v2_7d_clock",
             "type": "text",
-            "x": 240,
+            "x": 256,
             "y": 24,
             "font": "lg",
             "color": "CLR_PEACH",
@@ -1267,7 +1267,7 @@
           {
             "id": "v2_cai_7d",
             "type": "donutGauge",
-            "x": 228,
+            "x": 256,
             "y": 100,
             "color": "CLR_LAVENDER",
             "pct": 45,
@@ -1279,7 +1279,7 @@
           {
             "id": "v2_7d_bar",
             "type": "countdownBar",
-            "x": 300,
+            "x": 304,
             "y": 24,
             "w": 10,
             "h": 120,
