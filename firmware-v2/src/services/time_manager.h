@@ -7,6 +7,11 @@ public:
     void syncNTP();
     bool isTimeSynced();
 
+    // Sets the system clock from an epoch obtained some other way (e.g. an
+    // HTTPS response's Date header), for networks that block NTP's UDP/123
+    // but allow HTTPS out.
+    void setFromEpoch(time_t epoch);
+
     // Generate ISO8601 strings for API queries
     String todayStartUTC();     // "2026-02-21T00:00:00Z"
     String todayEndUTC();       // "2026-02-22T00:00:00Z"

@@ -1219,7 +1219,7 @@
             "type": "text",
             "x": 116,
             "y": 24,
-            "font": "lg",
+            "font": "20",
             "color": "CLR_TEXT_BRIGHT",
             "text": "2:22:00",
             "datum": "TC"
@@ -1259,7 +1259,7 @@
             "type": "text",
             "x": 256,
             "y": 24,
-            "font": "lg",
+            "font": "20",
             "color": "CLR_PEACH",
             "text": "7d 0h0m",
             "datum": "TC"

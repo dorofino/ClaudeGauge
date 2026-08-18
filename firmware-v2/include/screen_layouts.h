@@ -5,7 +5,7 @@
 // ---- Screen 0: Claude.ai ----
 #define V2_5H_CLOCK_X  116
 #define V2_5H_CLOCK_Y  24
-#define V2_5H_CLOCK_FONT  LCARS_FONT_LG
+#define V2_5H_CLOCK_FONT  LCARS_FONT_20
 #define V2_5H_CLOCK_COLOR  LCARS_WHITE
 #define V2_5H_CLOCK_DATUM  TC_DATUM
 #define V2_CAI_5H_X  116
@@ -26,7 +26,7 @@
 #define V2_DIV_COLOR  LCARS_AMBER
 #define V2_7D_CLOCK_X  256
 #define V2_7D_CLOCK_Y  24
-#define V2_7D_CLOCK_FONT  LCARS_FONT_LG
+#define V2_7D_CLOCK_FONT  LCARS_FONT_20
 #define V2_7D_CLOCK_COLOR  LCARS_PEACH
 #define V2_7D_CLOCK_DATUM  TC_DATUM
 #define V2_CAI_7D_X  256
