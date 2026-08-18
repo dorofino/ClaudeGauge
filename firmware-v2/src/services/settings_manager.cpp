@@ -1,11 +1,22 @@
 #include "settings_manager.h"
 #include "config.h"
 #include <Preferences.h>
+#include <ArduinoJson.h>
 
 static Preferences prefs;
 
 void SettingsManager::begin() {
     prefs.begin(NVS_NAMESPACE, false);
+
+    // One-time migration: fold the legacy single-network credentials into
+    // the multi-network list, then drop them.
+    String legacySsid = prefs.getString(KEY_SSID, "");
+    if (legacySsid.length() > 0) {
+        addWiFiNetwork(legacySsid, prefs.getString(KEY_PASS, ""));
+        prefs.remove(KEY_SSID);
+        prefs.remove(KEY_PASS);
+        Serial.println("[Settings] Migrated legacy WiFi credentials");
+    }
 
     // One-time cleanup: remove stale proxy URLs from NVS.
     // Catches: legacy http:// local proxy IPs, old workers.dev URLs,
@@ -28,16 +39,80 @@ void SettingsManager::begin() {
 }
 
 String SettingsManager::getWiFiSSID() {
-    return prefs.getString(KEY_SSID, "");
+    auto nets = getWiFiNetworks();
+    return nets.empty() ? "" : nets.front().ssid;
 }
 
 String SettingsManager::getWiFiPassword() {
-    return prefs.getString(KEY_PASS, "");
+    auto nets = getWiFiNetworks();
+    return nets.empty() ? "" : nets.front().password;
 }
 
 void SettingsManager::setWiFi(const String& ssid, const String& password) {
-    prefs.putString(KEY_SSID, ssid);
-    prefs.putString(KEY_PASS, password);
+    addWiFiNetwork(ssid, password);
+}
+
+std::vector<WiFiNetwork> SettingsManager::getWiFiNetworks() {
+    std::vector<WiFiNetwork> nets;
+    String raw = prefs.getString(KEY_NETS, "");
+    if (raw.length() == 0) return nets;
+
+    JsonDocument doc;
+    if (deserializeJson(doc, raw) != DeserializationError::Ok) return nets;
+
+    for (JsonObject o : doc.as<JsonArray>()) {
+        WiFiNetwork n;
+        n.ssid = o["s"].as<String>();
+        n.password = o["p"].as<String>();
+        if (n.ssid.length() > 0) nets.push_back(n);
+    }
+    return nets;
+}
+
+static void saveWiFiNetworks(Preferences& p, const std::vector<WiFiNetwork>& nets) {
+    JsonDocument doc;
+    JsonArray arr = doc.to<JsonArray>();
+    for (auto& n : nets) {
+        JsonObject o = arr.add<JsonObject>();
+        o["s"] = n.ssid;
+        o["p"] = n.password;
+    }
+    String out;
+    serializeJson(doc, out);
+    p.putString("wifi_nets", out);
+}
+
+void SettingsManager::addWiFiNetwork(const String& ssid, const String& password) {
+    if (ssid.length() == 0) return;
+
+    std::vector<WiFiNetwork> nets = getWiFiNetworks();
+
+    // Update in place if this SSID is already saved, moving it to the front
+    // (most-recently-used) so getWiFiSSID()/getWiFiPassword() reflect it.
+    for (size_t i = 0; i < nets.size(); i++) {
+        if (nets[i].ssid == ssid) {
+            nets.erase(nets.begin() + i);
+            break;
+        }
+    }
+    nets.insert(nets.begin(), {ssid, password});
+
+    while (nets.size() > WIFI_MAX_NETWORKS) {
+        nets.pop_back();
+    }
+
+    saveWiFiNetworks(prefs, nets);
+}
+
+void SettingsManager::removeWiFiNetwork(const String& ssid) {
+    std::vector<WiFiNetwork> nets = getWiFiNetworks();
+    for (size_t i = 0; i < nets.size(); i++) {
+        if (nets[i].ssid == ssid) {
+            nets.erase(nets.begin() + i);
+            saveWiFiNetworks(prefs, nets);
+            return;
+        }
+    }
 }
 
 String SettingsManager::getApiKey() {

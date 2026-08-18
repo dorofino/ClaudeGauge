@@ -5,6 +5,7 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <stdarg.h>
+#include <time.h>
 
 void ClaudeAiClient::init(const String& sessionKey, const String& proxyUrl) {
     _sessionKey = sessionKey;
@@ -47,6 +48,9 @@ bool ClaudeAiClient::doGet(const String& path, String& response) {
     http.setTimeout(15000);
     http.setReuse(false);
 
+    static const char* kHeaders[] = { "Date" };
+    http.collectHeaders(kHeaders, 1);
+
     bool begun;
     if (_useHttps) {
         begun = http.begin(_secureClient, fullUrl);
@@ -65,6 +69,17 @@ bool ClaudeAiClient::doGet(const String& path, String& response) {
 
     int httpCode = http.GET();
     Serial.printf("[ClaudeAI] HTTP %d\n", httpCode);
+
+    if (http.hasHeader("Date")) {
+        struct tm tm = {};
+        // RFC 1123, e.g. "Wed, 21 Oct 2015 07:28:00 GMT"
+        if (strptime(http.header("Date").c_str(), "%a, %d %b %Y %H:%M:%S", &tm)) {
+            // mktime() treats tm as local time, but TimeManager::syncNTP()
+            // configures a UTC (offset-0) TZ unconditionally, sync or not —
+            // same assumption parseLimit() below relies on for resets_at.
+            _lastServerTime = mktime(&tm);
+        }
+    }
 
     if (httpCode <= 0) {
         setError("Proxy unreachable (%d)", httpCode);

@@ -19,7 +19,7 @@ void WiFiManager::connect(const String& ssid, const String& password) {
     uint32_t start = millis();
     while (WiFi.status() != WL_CONNECTED) {
         if (millis() - start > WIFI_TIMEOUT_MS) {
-            Serial.println("\nWiFi connection timeout!");
+            Serial.printf("\nWiFi connection timeout! status=%d\n", (int)WiFi.status());
             return;
         }
         delay(250);
@@ -29,21 +29,49 @@ void WiFiManager::connect(const String& ssid, const String& password) {
     Serial.printf("\nConnected! IP: %s\n", WiFi.localIP().toString().c_str());
 }
 
+void WiFiManager::connectAny(const std::vector<WiFiNetwork>& networks) {
+    _multiMode = true;
+
+    WiFi.mode(WIFI_STA);
+    for (auto& n : networks) {
+        _wifiMulti.addAP(n.ssid.c_str(), n.password.c_str());
+    }
+
+    Serial.printf("Connecting to %d saved network(s)", (int)networks.size());
+
+    uint32_t start = millis();
+    while (_wifiMulti.run(WIFI_TIMEOUT_MS) != WL_CONNECTED) {
+        if (millis() - start > WIFI_TIMEOUT_MS) {
+            Serial.printf("\nWiFi connection timeout! status=%d\n", (int)WiFi.status());
+            return;
+        }
+        delay(250);
+        Serial.print(".");
+    }
+
+    Serial.printf("\nConnected! SSID: %s, IP: %s\n",
+                  WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+}
+
 bool WiFiManager::isConnected() {
     return WiFi.status() == WL_CONNECTED;
 }
 
 void WiFiManager::reconnectIfNeeded() {
     if (isConnected()) return;
-    if (_ssid.length() == 0) return;
+    if (!_multiMode && _ssid.length() == 0) return;
 
     uint32_t now = millis();
     if (now - _lastReconnectAttempt < RECONNECT_INTERVAL) return;
 
     _lastReconnectAttempt = now;
     Serial.println("WiFi reconnecting...");
-    WiFi.disconnect();
-    WiFi.begin(_ssid.c_str(), _password.c_str());
+    if (_multiMode) {
+        _wifiMulti.run(WIFI_TIMEOUT_MS);
+    } else {
+        WiFi.disconnect();
+        WiFi.begin(_ssid.c_str(), _password.c_str());
+    }
 }
 
 int16_t WiFiManager::getRSSI() {

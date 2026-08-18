@@ -2,6 +2,7 @@
 #include "config.h"
 #include <WiFi.h>
 #include <lcars.h>
+#include <vector>
 
 // ============================================================
 // HTML/CSS for the configuration portal
@@ -219,6 +220,7 @@ void ConfigWebServer::begin(SettingsManager* settings) {
 
     _server.on("/", HTTP_GET,  [this]() { handleRoot(); });
     _server.on("/save-wifi", HTTP_POST, [this]() { handleSaveWiFi(); });
+    _server.on("/delete-wifi", HTTP_POST, [this]() { handleDeleteWiFi(); });
     _server.on("/save-apikey", HTTP_POST, [this]() { handleSaveApiKey(); });
     _server.on("/save-session", HTTP_POST, [this]() { handleSaveSessionKey(); });
     _server.on("/save-proxy", HTTP_POST, [this]() { handleSaveProxy(); });
@@ -263,13 +265,31 @@ void ConfigWebServer::handleSaveWiFi() {
     String pass = _server.arg("password");
 
     if (ssid.length() > 0) {
-        _settings->setWiFi(ssid, pass);
-        Serial.printf("WiFi saved: %s\n", ssid.c_str());
+        _settings->addWiFiNetwork(ssid, pass);
+        Serial.printf("WiFi network saved: %s\n", ssid.c_str());
         _server.send(200, "text/html", buildSuccessPage());
         _shouldReboot = true;
     } else {
         _server.send(400, "text/plain", "WiFi SSID is required");
     }
+}
+
+void ConfigWebServer::handleDeleteWiFi() {
+    if (!_settings) {
+        _server.send(500, "text/plain", "Internal error");
+        return;
+    }
+
+    String ssid = _server.arg("ssid");
+    if (ssid.length() == 0) {
+        _server.send(400, "text/plain", "SSID is required");
+        return;
+    }
+
+    _settings->removeWiFiNetwork(ssid);
+    Serial.printf("WiFi network removed: %s\n", ssid.c_str());
+    _server.send(200, "text/html", buildSuccessPage());
+    _shouldReboot = true;
 }
 
 void ConfigWebServer::handleSaveApiKey() {
@@ -483,18 +503,45 @@ String ConfigWebServer::buildPage() {
     page += F("<div class='card-body'>");
     if (hasWifi && wifiOk) {
         page += "<div style='color:#00ff88;font-size:13px;margin-bottom:12px'>"
-                "Connected to <b>" + ssid + "</b> &mdash; " +
+                "Connected to <b>" + WiFi.SSID() + "</b> &mdash; " +
                 WiFi.localIP().toString() + "</div>";
     }
+
+    // List of saved networks (multi-network support — device auto-connects
+    // to whichever of these is reachable at boot)
+    std::vector<WiFiNetwork> savedNets = _settings ? _settings->getWiFiNetworks()
+                                                    : std::vector<WiFiNetwork>();
+    if (!savedNets.empty()) {
+        page += F("<div style='margin-bottom:14px'>");
+        for (auto& n : savedNets) {
+            page += "<div style='display:flex;align-items:center;justify-content:space-between;"
+                    "background:#161b22;border:1px solid #30363d;border-radius:6px;"
+                    "padding:8px 12px;margin-bottom:6px'>";
+            page += "<span style='font-size:13px;color:#e6edf3'>" + n.ssid;
+            if (wifiOk && n.ssid == WiFi.SSID()) {
+                page += " <span style='color:#00ff88;font-size:11px'>&#9679; active</span>";
+            }
+            page += "</span>";
+            page += "<form method='POST' action='/delete-wifi' style='margin:0'>";
+            page += "<input type='hidden' name='ssid' value='" + n.ssid + "'>";
+            page += "<button type='submit' class='btn-danger' style='width:auto;padding:4px 10px;"
+                    "font-size:11px' onclick='return confirm(\"Remove this network?\")'>Remove</button>";
+            page += "</form></div>";
+        }
+        page += F("</div>");
+    }
+
     page += F("<form method='POST' action='/save-wifi'>");
     page += F("<label for='ssid'>Network Name (SSID)</label>");
-    page += "<input type='text' id='ssid' name='ssid' placeholder='Enter WiFi name' value='" + ssid + "'>";
+    page += F("<input type='text' id='ssid' name='ssid' placeholder='Enter WiFi name' value=''>");
     page += F("<label for='password'>Password</label>");
     page += F("<div class='pw-wrap'>");
     page += F("<input type='password' id='password' name='password' placeholder='Enter WiFi password'>");
     page += F("<button type='button' class='toggle-btn' onclick='togglePw(\"password\")'>show</button>");
     page += F("</div>");
-    page += F("<button type='submit' class='btn btn-sm'>Save WiFi &amp; Restart</button>");
+    page += F("<div class='hint'>Up to " STR(WIFI_MAX_NETWORKS) " networks — e.g. home and office. "
+              "The device connects to whichever is in range.</div>");
+    page += F("<button type='submit' class='btn btn-sm'>Add Network &amp; Restart</button>");
     page += F("</form>");
     page += F("</div></div>");
 

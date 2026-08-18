@@ -195,10 +195,7 @@ void enterSetupMode() {
 void connectAndFetch() {
     Serial.println("[CG] Connecting to WiFi...");
 
-    String ssid = settingsMgr.getWiFiSSID();
-    String pass = settingsMgr.getWiFiPassword();
-
-    wifiMgr.connect(ssid, pass);
+    wifiMgr.connectAny(settingsMgr.getWiFiNetworks());
 
     if (!wifiMgr.isConnected()) {
         Serial.println("[CG] WiFi failed, entering setup");
@@ -254,6 +251,13 @@ void fetchData() {
         Serial.printf("[CG] Claude.ai error: %s\n", state.claude_ai.error);
     }
 
+    // NTP (UDP/123) is blocked on some networks (corporate/guest WiFi) even
+    // though HTTPS works fine — fall back to the proxy response's Date
+    // header so countdown timers still have a real clock to work from.
+    if (!timeMgr.isTimeSynced() && claudeAiClient.getLastServerTime() > 0) {
+        timeMgr.setFromEpoch(claudeAiClient.getLastServerTime());
+    }
+
     state.is_fetching = false;
     state.last_refresh = millis();
     state.next_refresh = state.last_refresh + REFRESH_INTERVAL_MS;
@@ -300,6 +304,12 @@ void handleAutoRefresh() {
         updateWiFiState();
 
         if (state.wifi_connected) {
+            // Retry NTP if it failed at boot (e.g. UDP/123 blocked on a
+            // guest network) — without a synced clock, countdown timers
+            // compute nonsense (tens of thousands of days).
+            if (!timeMgr.isTimeSynced()) {
+                timeMgr.syncNTP();
+            }
             fetchData();
         } else {
             // Try reconnecting
@@ -320,8 +330,8 @@ void handleAutoRefresh() {
 // ============================================================
 void handleBacklight() {
     uint32_t idle = millis() - state.last_activity;
-    if (idle > LCARS_DIM_TIMEOUT_MS) {
-        engine.setBacklight(LCARS_BACKLIGHT_DIM);
+    if (idle > SCREEN_DIM_TIMEOUT_MS) {
+        engine.setBacklight(SCREEN_DIM_BRIGHTNESS);
     }
 
     // Any button/touch wakes up

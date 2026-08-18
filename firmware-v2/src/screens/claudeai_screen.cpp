@@ -7,6 +7,12 @@
 // Gauge colors are dynamic (alarm levels), not from header
 // ============================================================
 
+// Any epoch before this is treated as "clock not synced yet" (NTP failed
+// or hasn't completed) rather than a real timestamp — without this guard
+// an unsynced clock near epoch 0 makes resets_at look tens of thousands
+// of days away instead of counting down normally.
+static const time_t SANE_EPOCH = 1700000000;  // 2023-11-14
+
 // ============================================================
 // Main draw
 // ============================================================
@@ -46,15 +52,15 @@ void ClaudeAiScreen::onDraw(TFT_eSprite& spr, const LcarsFrame::Rect& c) {
         LcarsWidgets::drawDonutGauge(spr, V2_CAI_5H_X, V2_CAI_5H_Y, V2_CAI_5H_R, V2_CAI_5H_T,
                                       pct5h, color5h, LCARS_BAR_TRACK);
 
-        // Percentage text centered in donut
+        // Percentage text centered in donut — same alarm color as the gauge
         char pctBuf[8];
         snprintf(pctBuf, sizeof(pctBuf), "%.0f%%", cai.five_hour.utilization);
         LcarsFont::drawText(spr, pctBuf, V2_CAI_5H_X, V2_CAI_5H_Y - 2,
-                            V2_CAI_5H_PCT_FONT, V2_CAI_5H_PCT_COLOR, LCARS_BLACK, MC_DATUM);
+                            V2_CAI_5H_PCT_FONT, color5h, LCARS_BLACK, MC_DATUM);
 
         // Vertical countdown bar (fills bottom-up based on time remaining)
         int32_t rem5h = (int32_t)cai.five_hour.resets_at - (int32_t)now;
-        float cdPct5h = (rem5h > 0) ? (float)rem5h / 18000.0f : 0.0f;
+        float cdPct5h = (now >= SANE_EPOCH && rem5h > 0) ? (float)rem5h / 18000.0f : 0.0f;
         if (cdPct5h > 1.0f) cdPct5h = 1.0f;
         spr.fillRect(V2_5H_BAR_X, V2_5H_BAR_Y, V2_5H_BAR_W, V2_5H_BAR_H, LCARS_BAR_TRACK);
         int16_t fillH5 = (int16_t)(V2_5H_BAR_H * cdPct5h);
@@ -78,15 +84,15 @@ void ClaudeAiScreen::onDraw(TFT_eSprite& spr, const LcarsFrame::Rect& c) {
         LcarsWidgets::drawDonutGauge(spr, V2_CAI_7D_X, V2_CAI_7D_Y, V2_CAI_7D_R, V2_CAI_7D_T,
                                       pct7d, color7d, LCARS_BAR_TRACK);
 
-        // Percentage text
+        // Percentage text — same alarm color as the gauge
         char pctBuf[8];
         snprintf(pctBuf, sizeof(pctBuf), "%.0f%%", cai.seven_day.utilization);
         LcarsFont::drawText(spr, pctBuf, V2_CAI_7D_X, V2_CAI_7D_Y - 2,
-                            V2_CAI_7D_PCT_FONT, V2_CAI_7D_PCT_COLOR, LCARS_BLACK, MC_DATUM);
+                            V2_CAI_7D_PCT_FONT, color7d, LCARS_BLACK, MC_DATUM);
 
         // Vertical countdown bar
         int32_t rem7d = (int32_t)cai.seven_day.resets_at - (int32_t)now;
-        float cdPct7d = (rem7d > 0) ? (float)rem7d / 604800.0f : 0.0f;
+        float cdPct7d = (now >= SANE_EPOCH && rem7d > 0) ? (float)rem7d / 604800.0f : 0.0f;
         if (cdPct7d > 1.0f) cdPct7d = 1.0f;
         spr.fillRect(V2_7D_BAR_X, V2_7D_BAR_Y, V2_7D_BAR_W, V2_7D_BAR_H, LCARS_BAR_TRACK);
         int16_t fillH7 = (int16_t)(V2_7D_BAR_H * cdPct7d);
@@ -99,35 +105,35 @@ void ClaudeAiScreen::onDraw(TFT_eSprite& spr, const LcarsFrame::Rect& c) {
 }
 
 // ============================================================
-// Countdown format: H:MM:SS for <24h, Xd YhZm for >=24h
+// Countdown format: HH:MM for <24h, Xd HHhMMm for >=24h
 // ============================================================
 
 void ClaudeAiScreen::_formatCountdown(uint32_t resets_at, char* buf, size_t len) {
-    if (resets_at == 0) {
+    time_t now;
+    time(&now);
+
+    if (resets_at == 0 || now < SANE_EPOCH) {
         snprintf(buf, len, "--:--");
         return;
     }
 
-    time_t now;
-    time(&now);
     int32_t remaining = (int32_t)resets_at - (int32_t)now;
 
     if (remaining <= 0) {
-        snprintf(buf, len, "0:00");
+        snprintf(buf, len, "00:00");
         return;
     }
 
     uint32_t days = remaining / 86400;
     uint32_t hours = (remaining % 86400) / 3600;
     uint32_t mins = (remaining % 3600) / 60;
-    uint32_t secs = remaining % 60;
 
+    // Each numeric field is zero-padded to a fixed width so the text
+    // doesn't change size (and re-center) as the countdown ticks down.
     if (days > 0) {
-        snprintf(buf, len, "%lud %luh%lum", (unsigned long)days, (unsigned long)hours, (unsigned long)mins);
-    } else if (hours > 0) {
-        snprintf(buf, len, "%lu:%02lu:%02lu", (unsigned long)hours, (unsigned long)mins, (unsigned long)secs);
+        snprintf(buf, len, "%lud %02luh%02lum", (unsigned long)days, (unsigned long)hours, (unsigned long)mins);
     } else {
-        snprintf(buf, len, "%lu:%02lu", (unsigned long)mins, (unsigned long)secs);
+        snprintf(buf, len, "%02lu:%02lu", (unsigned long)hours, (unsigned long)mins);
     }
 }
 
